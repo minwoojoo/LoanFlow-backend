@@ -35,6 +35,11 @@ public class SecurityConfig {
                 .antMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
 
                 .antMatchers(
+                        HttpMethod.POST,
+                        "/api/callback/review-results"
+                ).permitAll()
+
+                .antMatchers(
                         "/swagger-ui/**",
                         "/swagger-ui.html",
                         "/v3/api-docs",

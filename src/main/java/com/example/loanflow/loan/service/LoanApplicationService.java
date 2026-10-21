@@ -9,11 +9,13 @@ import com.example.loanflow.loan.entity.LoanProduct;
 import com.example.loanflow.loan.mapper.LoanApplicationMapper;
 import com.example.loanflow.loan.mapper.LoanProductMapper;
 
+import com.example.loanflow.review.event.ReviewRequestedEvent;
 import com.example.loanflow.terms.entity.Terms;
 import com.example.loanflow.terms.mapper.TermsMapper;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +35,7 @@ public class LoanApplicationService {
     private final LoanProductMapper loanProductMapper;
     private final TermsMapper termsMapper;
     private final LoanLimitService loanLimitService;
+    private final ApplicationEventPublisher eventPublisher;
 
 
 
@@ -520,6 +523,15 @@ public class LoanApplicationService {
                     "대출 신청서 제출 시간이 저장되지 않았습니다."
             );
         }
+
+        // 심사 요청 이벤트 발행
+        eventPublisher.publishEvent(
+                new ReviewRequestedEvent(
+                        submittedApplication.getApplicationId(),
+                        submittedApplication.getRequestId()
+                )
+        );
+
 
         // 10. 응답 DTO 반환
         return new LoanApplicationSubmitResponse(

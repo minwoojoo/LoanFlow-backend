@@ -455,6 +455,7 @@ public class LoanApplicationServiceTest {
                         "심사중",
                         createdAt,
                         appliedAt,
+                        null,
                         null
                 );
 

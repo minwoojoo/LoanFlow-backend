@@ -142,6 +142,7 @@
             application_id,
             member_id,
             product_id,
+            request_id,
             application_amount,
             birth_date,
             employment_type,
@@ -215,6 +216,37 @@
             AND la.is_deleted = 'N'
 
     </select>
+
+
+    <select id="findByApplicationAndRequestId" resultType="LoanApplication">
+
+        SELECT
+            application_id,
+            member_id,
+            product_id,
+            request_id,
+            application_status,
+            review_result_id
+        FROM loan_application
+        WHERE application_id = #{applicationId}
+            AND request_id = #{requestId}
+
+    </select>
+
+    <update id="updateReviewResult">
+
+        UPDATE loan_application
+        SET
+            application_status = #{applicationStatus},
+            review_result_id = #{reviewResultId},
+            reviewed_at = SYSTIMESTAMP,
+            updated_at = SYSTIMESTAMP
+        WHERE application_id = #{applicationId}
+            AND request_id = #{requestId}
+            AND application_status = '심사중'
+            AND review_result_id IS NULL
+
+    </update>
 
 
 </mapper>

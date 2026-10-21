@@ -65,4 +65,18 @@ public interface LoanApplicationMapper {
             @Param("applicationId") Long applicationId,
             @Param("memberId") Long memberId
     );
+
+    // 심사 대상 신청서 조회
+    LoanApplication findByApplicationAndRequestId(
+            @Param("applicationId") Long applicationId,
+            @Param("requestId") String requestId
+    );
+
+    // 심사 결과 반영
+    int updateReviewResult(
+            @Param("applicationId") Long applicationId,
+            @Param("requestId") String requestId,
+            @Param("reviewResultId") String reviewResultId,
+            @Param("applicationStatus") String applicationStatus
+    );
 }
