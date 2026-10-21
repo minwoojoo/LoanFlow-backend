@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.loanflow.loan.mapper.LoanLimitMapper" >
+    <select id="findByProductAndEmploymentType" resultType="LoanEmploymentPolicy">
+
+        SELECT
+            policy_id,
+            product_id,
+            employment_type,
+            limit_multiplier
+        FROM loan_employment_policy
+        WHERE product_id = #{productId}
+            AND employment_type = #{employmentType}
+
+    </select>
+</mapper>

@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.loanflow.loan.mapper.LoanApplicationMapper">
+    <insert id="insertApplication"
+            parameterType="LoanApplication"
+            useGeneratedKeys="true"
+            keyProperty="applicationId"
+            keyColumn="APPLICATION_ID">
+
+        INSERT INTO loan_application(
+            member_id,
+            product_id,
+            request_id,
+            application_status
+        )
+        VALUES (
+            #{memberId},
+            #{productId},
+            #{requestId},
+            #{applicationStatus}
+        )
+    </insert>
+
+
+    <insert id="insertConsent">
+
+        INSERT INTO loan_application_consent(
+            application_id,
+            terms_id,
+            agreed_yn,
+            agreed_at
+        )
+        VALUES (
+            #{applicationId},
+            #{termsId},
+            'Y',
+            CURRENT_TIMESTAMP
+        )
+
+    </insert>
+
+    <select id="findWritingApplication" resultType="LoanApplication">
+
+        SELECT
+            application_id,
+            member_id,
+            product_id,
+            request_id,
+            application_amount,
+            birth_date,
+            employment_type,
+            annual_income,
+            available_limit,
+            estimated_interest_rate,
+            loan_term,
+            application_status
+        FROM loan_application
+        WHERE member_id = #{memberId}
+            AND product_id = #{productId}
+            AND application_status IN('작성중')
+            AND is_deleted = 'N'
+        ORDER BY created_at DESC, application_id DESC
+        FETCH FIRST 1 ROW ONLY
+    </select>
+
+    <select id="findWritingByIdAndMember" resultType="LoanApplication">
+        SELECT
+            application_id,
+            member_id,
+            product_id,
+            application_amount,
+            loan_term,
+            employment_type,
+            annual_income,
+            birth_date,
+            available_limit,
+            estimated_interest_rate,
+            application_status
+        FROM loan_application
+        WHERE application_id = #{applicationId}
+            AND member_id = #{memberId}
+            AND application_status = '작성중'
+            AND is_deleted = 'N'
+    </select>
+
+
+    <update id="updateApplicationDraft">
+
+        UPDATE loan_application
+
+        <set>
+            <if test="request.applicationAmount != null">
+                application_amount = #{request.applicationAmount},
+            </if>
+
+            <if test="request.loanTerm != null">
+                loan_term = #{request.loanTerm},
+            </if>
+
+            <if test="request.employmentType != null">
+                employment_type = #{request.employmentType},
+            </if>
+
+            <if test="request.annualIncome != null">
+                annual_income = #{request.annualIncome},
+            </if>
+
+            <if test="request.birthDate != null">
+                birth_date = #{request.birthDate},
+            </if>
+
+            updated_at = CURRENT_TIMESTAMP
+        </set>
+
+        WHERE application_id = #{applicationId}
+        AND member_id = #{memberId}
+        AND application_status = '작성중'
+        AND is_deleted = 'N'
+
+    </update>
+
+
+    <update id="submitApplication">
+        UPDATE loan_application
+        SET
+            application_status = '심사중',
+            available_limit = #{availableLimit},
+            estimated_interest_rate = #{estimatedInterestRate},
+            applied_at = SYSTIMESTAMP,
+            updated_at = SYSTIMESTAMP
+        WHERE application_id = #{applicationId}
+            AND member_id = #{memberId}
+            AND application_status = '작성중'
+            AND is_deleted = 'N'
+    </update>
+
+    <select id="findByIdAndMember" resultType="LoanApplication">
+        SELECT
+            application_id,
+            member_id,
+            product_id,
+            application_amount,
+            birth_date,
+            employment_type,
+            annual_income,
+            available_limit,
+            estimated_interest_rate,
+            application_status,
+            loan_term,
+            applied_at,
+            created_at,
+            updated_at
+        FROM loan_application
+        WHERE application_id = #{applicationId}
+            AND member_id = #{memberId}
+            AND is_deleted = 'N'
+    </select>
+
+
+    <select id="findMyApplications"
+            resultType="com.example.loanflow.loan.dto.response.LoanApplicationReadResponse">
+
+        SELECT
+            la.application_id,
+            la.product_id,
+            lp.product_name,
+            la.application_amount,
+            la.application_status,
+            la.created_at,
+            la.applied_at
+        FROM loan_application la
+        INNER JOIN loan_product lp
+        ON la.product_id = lp.product_id
+
+        WHERE la.member_id = #{memberId}
+            AND la.is_deleted = 'N'
+            AND la.application_status IN (
+                '작성중', '심사중', '승인', '거절'
+            )
+        ORDER BY
+            la.created_at DESC,
+            la.application_id DESC
+
+    </select>
+
+
+    <select id="findApplicationDetail"
+            resultType="com.example.loanflow.loan.dto.response.LoanApplicationDetailResponse">
+
+        SELECT
+            la.application_id,
+            la.product_id,
+            lp.product_name,
+            la.application_amount,
+            la.loan_term,
+            la.available_limit,
+            la.estimated_interest_rate,
+            la.employment_type,
+            la.annual_income,
+            la.birth_date,
+            la.application_status,
+            la.created_at,
+            la.applied_at,
+            la.reviewed_at,
+            lp.max_loan_term
+        FROM loan_application la
+        INNER JOIN loan_product lp
+        ON la.product_id = lp.product_id
+
+        WHERE la.application_id = #{applicationId}
+            AND la.member_id = #{memberId}
+            AND la.is_deleted = 'N'
+
+    </select>
+
+
+</mapper>

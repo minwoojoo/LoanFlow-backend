@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC
+        "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.loanflow.member.mapper.MemberMapper">
+    <select id="findAccountId"  resultType="Member">
+        SELECT
+            member_id,
+            account_id,
+            password,
+            name,
+            role,
+            employment_type,
+            annual_income,
+            birth_date,
+            created_at,
+            updated_at
+        FROM member
+        WHERE account_id = #{accountId}
+    </select>
+
+    <select id="findById"  resultType="Member">
+        SELECT
+            member_id,
+            name,
+            employment_type,
+            annual_income,
+            birth_date
+        FROM member
+        WHERE member_id = #{memberId}
+    </select>
+
+    <update id="updateMyInfo" >
+        UPDATE member
+        SET
+            name = #{request.name},
+            employment_type = #{request.employmentType},
+            annual_income = #{request.annualIncome},
+            birth_date = #{request.birthDate},
+            updated_at = SYSDATE
+        WHERE member_id = #{memberId}
+    </update>
+
+
+</mapper>
