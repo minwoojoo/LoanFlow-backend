@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class LoanApplicationReviewMapperTest {
 
     @Autowired
-    private LoanApplicationMapper loanApplicationMapper;
+    private LoanMapper loanMapper;
 
     // 실제 DB에 존재하는 '심사중' 신청서 정보로 변경
     private static final Long TEST_APPLICATION_ID = 47L;
@@ -34,7 +34,7 @@ class LoanApplicationReviewMapperTest {
 
         // when
         LoanApplication application =
-                loanApplicationMapper.findByApplicationAndRequestId(
+                loanMapper.findByApplicationAndRequestId(
                         applicationId,
                         requestId
                 );
@@ -56,7 +56,7 @@ class LoanApplicationReviewMapperTest {
         String reviewResultId = UUID.randomUUID().toString();
 
         // when
-        int updatedRows = loanApplicationMapper.updateReviewResult(
+        int updatedRows = loanMapper.updateReviewResult(
                 applicationId,
                 requestId,
                 reviewResultId,
@@ -67,7 +67,7 @@ class LoanApplicationReviewMapperTest {
         assertEquals(1, updatedRows);
 
         LoanApplication updatedApplication =
-                loanApplicationMapper.findByApplicationAndRequestId(
+                loanMapper.findByApplicationAndRequestId(
                         applicationId,
                         requestId
                 );
@@ -93,7 +93,7 @@ class LoanApplicationReviewMapperTest {
 
         // 첫 번째 심사 결과 반영
         int firstUpdatedRows =
-                loanApplicationMapper.updateReviewResult(
+                loanMapper.updateReviewResult(
                         applicationId,
                         requestId,
                         firstResultId,
@@ -104,7 +104,7 @@ class LoanApplicationReviewMapperTest {
 
         // when: 동일 신청서에 두 번째 결과 반영 시도
         int secondUpdatedRows =
-                loanApplicationMapper.updateReviewResult(
+                loanMapper.updateReviewResult(
                         applicationId,
                         requestId,
                         secondResultId,
@@ -115,7 +115,7 @@ class LoanApplicationReviewMapperTest {
         assertEquals(0, secondUpdatedRows);
 
         LoanApplication application =
-                loanApplicationMapper.findByApplicationAndRequestId(
+                loanMapper.findByApplicationAndRequestId(
                         applicationId,
                         requestId
                 );
@@ -136,7 +136,7 @@ class LoanApplicationReviewMapperTest {
 
         // when
         int updatedRows =
-                loanApplicationMapper.updateReviewResult(
+                loanMapper.updateReviewResult(
                         applicationId,
                         invalidRequestId,
                         reviewResultId,

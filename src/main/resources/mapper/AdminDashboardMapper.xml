@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE mapper
+                PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+                "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.loanflow.admin.mapper.AdminDashboardMapper">
+    <select id="findDashboardSummary" resultType="AdminDashboardSummaryResponse" flushCache="true">
+        SELECT
+            COUNT(*) AS total_count,
+
+            COUNT(
+                CASE
+                    WHEN application_status = '작성중' THEN 1
+                END
+            ) AS draft_count,
+
+            COUNT(
+                CASE
+                    WHEN application_status = '심사중' THEN 1
+                END
+            ) AS reviewing_count,
+
+            COUNT(
+                CASE
+                    WHEN application_status = '승인' THEN 1
+                END
+            ) AS approved_count,
+
+            COUNT(
+                CASE
+                    WHEN application_status = '거절' THEN 1
+                END
+            ) AS rejected_count
+        FROM loan_application
+        WHERE is_deleted = 'N'
+
+    </select>
+</mapper>

@@ -11,7 +11,7 @@ import java.time.LocalDate;
 
 @Getter
 @NoArgsConstructor
-public class LoanApplicationUpdateRequest {
+public class LoanUpdateRequest {
 
     // 희망 대출 금액
     @Positive(message = "희망 대출 금액은 1원 이상이어야 합니다.")

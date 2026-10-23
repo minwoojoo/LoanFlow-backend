@@ -2,10 +2,12 @@
 package com.example.loanflow.review.service;
 
 import com.example.loanflow.loan.entity.LoanApplication;
-import com.example.loanflow.loan.mapper.LoanApplicationMapper;
+import com.example.loanflow.loan.mapper.LoanMapper;
 import com.example.loanflow.review.dto.ReviewCallbackRequest;
+import com.example.loanflow.review.event.ReviewCallbackProcessedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,7 +18,8 @@ import org.springframework.web.server.ResponseStatusException;
 @RequiredArgsConstructor
 public class ReviewCallbackService {
 
-    private final LoanApplicationMapper loanApplicationMapper;
+    private final LoanMapper loanMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public void processResult(ReviewCallbackRequest request) {
@@ -49,7 +52,7 @@ public class ReviewCallbackService {
 
         // 3. 신청서 조회
         LoanApplication application =
-                loanApplicationMapper.findByApplicationAndRequestId(
+                loanMapper.findByApplicationAndRequestId(
                         request.getApplicationId(),
                         request.getRequestId()
                 );
@@ -65,15 +68,17 @@ public class ReviewCallbackService {
         if (!"심사중".equals(application.getApplicationStatus())) {
 
             // 동일한 결과가 재전송된 경우 정상 처리
-            if (request.getReviewResultId().equals(
-                    application.getReviewResultId())
-                    && applicationStatus.equals(
-                    application.getApplicationStatus())) {
+            if (request.getReviewResultId().equals(application.getReviewResultId())
+                    && applicationStatus.equals(application.getApplicationStatus())) {
 
                 log.info(
                         "중복 심사 콜백 - applicationId: {}",
                         request.getApplicationId()
                 );
+
+                // 중복 콜백 처리 로그 이벤트 발행
+                publishLogEvent(request, "DUPLICATE");
+
                 return;
             }
 
@@ -84,7 +89,7 @@ public class ReviewCallbackService {
         }
 
         // 5. 심사 결과 UPDATE
-        int updatedRows = loanApplicationMapper.updateReviewResult(
+        int updatedRows = loanMapper.updateReviewResult(
                 request.getApplicationId(),
                 request.getRequestId(),
                 request.getReviewResultId(),
@@ -95,7 +100,7 @@ public class ReviewCallbackService {
         if (updatedRows != 1) {
 
             LoanApplication current =
-                    loanApplicationMapper.findByApplicationAndRequestId(
+                    loanMapper.findByApplicationAndRequestId(
                             request.getApplicationId(),
                             request.getRequestId()
                     );
@@ -103,6 +108,10 @@ public class ReviewCallbackService {
             if (current != null
                     && request.getReviewResultId().equals(current.getReviewResultId())
                     && applicationStatus.equals(current.getApplicationStatus())) {
+
+                // 동시 요청으로 이미 처리된 동일 콜백
+                publishLogEvent(request, "DUPLICATE");
+
                 return;
             }
 
@@ -117,6 +126,19 @@ public class ReviewCallbackService {
                 request.getApplicationId(),
                 request.getReviewResultId(),
                 applicationStatus
+        );
+
+        // 7. 심사 결과 처리 성공 이벤트 발행
+        publishLogEvent(request, "SUCCESS");
+    }
+
+    private void publishLogEvent(ReviewCallbackRequest request, String processStatus) {
+        eventPublisher.publishEvent(
+                new ReviewCallbackProcessedEvent(
+                        request.getApplicationId(),
+                        request.getRequestId(),
+                        processStatus
+                )
         );
     }
 

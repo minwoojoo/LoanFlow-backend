@@ -1,11 +1,10 @@
 package com.example.loanflow.loan.controller;
 
 
-import com.example.loanflow.loan.dto.request.LoanApplicationCreateRequest;
-import com.example.loanflow.loan.dto.request.LoanApplicationUpdateRequest;
+import com.example.loanflow.loan.dto.request.LoanCreateRequest;
+import com.example.loanflow.loan.dto.request.LoanUpdateRequest;
 import com.example.loanflow.loan.dto.response.*;
-import com.example.loanflow.loan.entity.LoanApplication;
-import com.example.loanflow.loan.service.LoanApplicationService;
+import com.example.loanflow.loan.service.LoanService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -22,19 +21,19 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/loan-applications")
 @RequiredArgsConstructor
-public class LoanApplicationController {
-    private final LoanApplicationService loanApplicationService;
+public class LoanController {
+    private final LoanService loanService;
 
     @Operation(
             summary = "대출 신청서 신규 생성",
             description = "약관 동의 후 작성중 상태의 대출 신청서를 생성합니다."
     )
     @PostMapping
-    public ResponseEntity<LoanApplicationCreateResponse> createApplication(
+    public ResponseEntity<LoanCreateResponse> createApplication(
             @AuthenticationPrincipal Long memberId,
-            @Valid @RequestBody LoanApplicationCreateRequest request
+            @Valid @RequestBody LoanCreateRequest request
             ){
-        LoanApplicationCreateResponse response = loanApplicationService.createApplication(
+        LoanCreateResponse response = loanService.createApplication(
                 memberId, request
         );
 
@@ -49,11 +48,11 @@ public class LoanApplicationController {
             description = "작성 중인 선칭서를 조횝합니다."
     )
     @GetMapping("/draft")
-    public ResponseEntity<LoanApplicationDraftResponse> findDraft(
+    public ResponseEntity<LoanDraftResponse> findDraft(
             @AuthenticationPrincipal Long memberId,
             @RequestParam("productId") Long productId
     ){
-        LoanApplicationDraftResponse response = loanApplicationService.findDraft(
+        LoanDraftResponse response = loanService.findDraft(
                 memberId,
                 productId
         );
@@ -68,14 +67,14 @@ public class LoanApplicationController {
             description = "작성 중인 대출 신청서의 입력 정보를 부분 수정합니다."
     )
     @PatchMapping("/{id}")
-    public ResponseEntity<LoanApplicationUpdateResponse> updateApplicationDraft(
+    public ResponseEntity<LoanUpdateResponse> updateApplicationDraft(
             @AuthenticationPrincipal Long memberId,
             @PathVariable("id") Long applicationId,
-            @Valid @RequestBody LoanApplicationUpdateRequest request
+            @Valid @RequestBody LoanUpdateRequest request
     ) {
 
-        LoanApplicationUpdateResponse response =
-                loanApplicationService.updateApplicationDraft(
+        LoanUpdateResponse response =
+                loanService.updateApplicationDraft(
                         memberId,
                         applicationId,
                         request
@@ -90,12 +89,12 @@ public class LoanApplicationController {
             description = "작성 중인 대출 신청서의 필수 정보를 검증하고 최종 제출합니다."
     )
     @PostMapping("{id}/submit")
-    public ResponseEntity<LoanApplicationSubmitResponse> submitApplication(
+    public ResponseEntity<LoanSubmitResponse> submitApplication(
             @AuthenticationPrincipal Long memberId,
             @PathVariable("id") Long applicationId
     ){
-        LoanApplicationSubmitResponse response =
-                loanApplicationService.submitApplication(
+        LoanSubmitResponse response =
+                loanService.submitApplication(
                         memberId,
                         applicationId
                 );
@@ -109,12 +108,12 @@ public class LoanApplicationController {
             description = "로그인한 회원의 대출 신청 목록을 조회합니다."
     )
     @GetMapping
-    public ResponseEntity<List<LoanApplicationReadResponse>> getMyApplications(
+    public ResponseEntity<List<LoanReadResponse>> getMyApplications(
             @AuthenticationPrincipal Long memberId
     ){
         // 1. 로그인한 회원의 신청 목록 조회
-        List<LoanApplicationReadResponse> response =
-                loanApplicationService.getMyApplications(memberId);
+        List<LoanReadResponse> response =
+                loanService.getMyApplications(memberId);
 
         // 2. 조회 결과 반환
         return ResponseEntity.ok(response);
@@ -126,12 +125,12 @@ public class LoanApplicationController {
             description = "로그인한 회원의 대출 신청 상세 정보와 진행 일시를 조회합니다."
     )
     @GetMapping("{id}")
-    public ResponseEntity<LoanApplicationDetailResponse> getApplicationDetail(
+    public ResponseEntity<LoanDetailResponse> getApplicationDetail(
             @AuthenticationPrincipal Long memberId,
             @PathVariable("id") Long applicationId
     ){
-        LoanApplicationDetailResponse response =
-                loanApplicationService.getApplicationDetail(
+        LoanDetailResponse response =
+                loanService.getApplicationDetail(
                         memberId,
                         applicationId
                 );

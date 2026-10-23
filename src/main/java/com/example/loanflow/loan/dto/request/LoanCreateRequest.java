@@ -10,7 +10,7 @@ import java.util.List;
 
 @Getter
 @NoArgsConstructor
-public class LoanApplicationCreateRequest {
+public class LoanCreateRequest {
 
     @NotNull(message = "대출 상품을 선택해주세요.")
     private Long productId;

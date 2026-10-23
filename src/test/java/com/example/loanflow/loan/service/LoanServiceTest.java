@@ -1,11 +1,11 @@
 package com.example.loanflow.loan.service;
 
 
-import com.example.loanflow.loan.dto.request.LoanApplicationCreateRequest;
+import com.example.loanflow.loan.dto.request.LoanCreateRequest;
 import com.example.loanflow.loan.dto.response.*;
 import com.example.loanflow.loan.entity.LoanApplication;
 import com.example.loanflow.loan.entity.LoanProduct;
-import com.example.loanflow.loan.mapper.LoanApplicationMapper;
+import com.example.loanflow.loan.mapper.LoanMapper;
 import com.example.loanflow.loan.mapper.LoanProductMapper;
 import com.example.loanflow.terms.entity.Terms;
 import com.example.loanflow.terms.mapper.TermsMapper;
@@ -29,10 +29,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class LoanApplicationServiceTest {
+public class LoanServiceTest {
 
     @Mock
-    private LoanApplicationMapper loanApplicationMapper;
+    private LoanMapper loanMapper;
 
     @Mock
     private LoanProductMapper loanProductMapper;
@@ -44,7 +44,7 @@ public class LoanApplicationServiceTest {
     private LoanLimitService loanLimitService;
 
     @InjectMocks
-    private LoanApplicationService loanApplicationService;
+    private LoanService loanService;
 
     private Long memberId;
     private Long productId;
@@ -56,8 +56,8 @@ public class LoanApplicationServiceTest {
     }
 
     // 테스트용 요청 객체
-    private LoanApplicationCreateRequest createRequest(List<Long> agreedTermsIds){
-        LoanApplicationCreateRequest request = mock(LoanApplicationCreateRequest.class);
+    private LoanCreateRequest createRequest(List<Long> agreedTermsIds){
+        LoanCreateRequest request = mock(LoanCreateRequest.class);
 
         when(request.getProductId()).thenReturn(productId);
         lenient().when(request.getAgreedTermsIds())
@@ -81,7 +81,7 @@ public class LoanApplicationServiceTest {
     void createApplication_success(){
 
         // given
-        LoanApplicationCreateRequest request = createRequest(Arrays.asList(1L, 2L));
+        LoanCreateRequest request = createRequest(Arrays.asList(1L, 2L));
 
         LoanProduct product = mock(LoanProduct.class);
         when(product.getProductId()).thenReturn(productId);
@@ -97,29 +97,29 @@ public class LoanApplicationServiceTest {
                 .thenReturn(Arrays.asList(requiredTerm, optionalTerm));
 
         // INSERT 시 자동 생성된 PK를 흉내낸다.
-        when(loanApplicationMapper.insertApplication(any(LoanApplication.class)))
+        when(loanMapper.insertApplication(any(LoanApplication.class)))
                 .thenAnswer(invocation -> {
                     LoanApplication application = invocation.getArgument(0);
                     application.setApplicationId(100L);
                     return 1;
                 });
 
-        when(loanApplicationMapper.insertConsent(anyLong(), anyLong()))
+        when(loanMapper.insertConsent(anyLong(), anyLong()))
                 .thenReturn(1);
 
         // when
-        LoanApplicationCreateResponse response =
-                loanApplicationService.createApplication(memberId, request);
+        LoanCreateResponse response =
+                loanService.createApplication(memberId, request);
 
         // then
         assertEquals(100L, response.getApplicationId());
         assertEquals("작성중", response.getApplicationStatus());
 
-        verify(loanApplicationMapper, times(1))
+        verify(loanMapper, times(1))
                 .insertApplication(any(LoanApplication.class));
 
-        verify(loanApplicationMapper).insertConsent(100L, 1L);
-        verify(loanApplicationMapper).insertConsent(100L, 2L);
+        verify(loanMapper).insertConsent(100L, 1L);
+        verify(loanMapper).insertConsent(100L, 2L);
 
     }
 
@@ -129,7 +129,7 @@ public class LoanApplicationServiceTest {
     void createApplication_duplicate() {
 
         // given
-        LoanApplicationCreateRequest request =
+        LoanCreateRequest request =
                 createRequest(Arrays.asList(1L));
 
         LoanProduct product = mock(LoanProduct.class);
@@ -145,14 +145,14 @@ public class LoanApplicationServiceTest {
                         .applicationStatus("작성중")
                         .build();
 
-        when(loanApplicationMapper.findWritingApplication(
+        when(loanMapper.findWritingApplication(
                 memberId, productId
         )).thenReturn(existingApplication);
 
         // when
         ResponseStatusException exception = assertThrows(
                 ResponseStatusException.class,
-                () -> loanApplicationService.createApplication(
+                () -> loanService.createApplication(
                         memberId, request
                 )
         );
@@ -160,10 +160,10 @@ public class LoanApplicationServiceTest {
         // then
         assertEquals(HttpStatus.CONFLICT, exception.getStatus());
 
-        verify(loanApplicationMapper, never())
+        verify(loanMapper, never())
                 .insertApplication(any(LoanApplication.class));
 
-        verify(loanApplicationMapper, never())
+        verify(loanMapper, never())
                 .insertConsent(anyLong(), anyLong());
     }
 
@@ -173,7 +173,7 @@ public class LoanApplicationServiceTest {
     void createApplication_requiredTermsMissing() {
 
         // given
-        LoanApplicationCreateRequest request =
+        LoanCreateRequest request =
                 createRequest(Arrays.asList(2L));
 
         LoanProduct product = mock(LoanProduct.class);
@@ -190,7 +190,7 @@ public class LoanApplicationServiceTest {
         // when
         ResponseStatusException exception = assertThrows(
                 ResponseStatusException.class,
-                () -> loanApplicationService.createApplication(
+                () -> loanService.createApplication(
                         memberId, request
                 )
         );
@@ -198,7 +198,7 @@ public class LoanApplicationServiceTest {
         // then
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
 
-        verify(loanApplicationMapper, never())
+        verify(loanMapper, never())
                 .insertApplication(any(LoanApplication.class));
     }
 
@@ -209,7 +209,7 @@ public class LoanApplicationServiceTest {
     void createApplication_duplicateTerms() {
 
         // given
-        LoanApplicationCreateRequest request =
+        LoanCreateRequest request =
                 createRequest(Arrays.asList(1L, 1L));
 
         LoanProduct product = mock(LoanProduct.class);
@@ -220,7 +220,7 @@ public class LoanApplicationServiceTest {
         // when
         ResponseStatusException exception = assertThrows(
                 ResponseStatusException.class,
-                () -> loanApplicationService.createApplication(
+                () -> loanService.createApplication(
                         memberId, request
                 )
         );
@@ -228,7 +228,7 @@ public class LoanApplicationServiceTest {
         // then
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
 
-        verify(loanApplicationMapper, never())
+        verify(loanMapper, never())
                 .insertApplication(any(LoanApplication.class));
     }
 
@@ -245,13 +245,13 @@ public class LoanApplicationServiceTest {
                 .applicationStatus("작성중")
                 .build();
 
-        when(loanApplicationMapper.findWritingApplication(
+        when(loanMapper.findWritingApplication(
                 memberId, productId
         )).thenReturn(application);
 
         // when
-        LoanApplicationDraftResponse response =
-                loanApplicationService.findDraft(memberId, productId);
+        LoanDraftResponse response =
+                loanService.findDraft(memberId, productId);
 
         // then
         assertEquals(22L, response.getApplicationId());
@@ -265,14 +265,14 @@ public class LoanApplicationServiceTest {
     void findDraft_notFound() {
 
         // given
-        when(loanApplicationMapper.findWritingApplication(
+        when(loanMapper.findWritingApplication(
                 memberId, productId
         )).thenReturn(null);
 
         // when
         ResponseStatusException exception = assertThrows(
                 ResponseStatusException.class,
-                () -> loanApplicationService.findDraft(
+                () -> loanService.findDraft(
                         memberId, productId
                 )
         );
@@ -290,7 +290,7 @@ public class LoanApplicationServiceTest {
         Long memberId = 1L;
         Long applicationId = 10L;
 
-        when(loanApplicationMapper.findWritingByIdAndMember(
+        when(loanMapper.findWritingByIdAndMember(
                 applicationId,
                 memberId
         )).thenReturn(null);
@@ -298,7 +298,7 @@ public class LoanApplicationServiceTest {
         // when: 최종 제출 메서드 실행
         ResponseStatusException exception = assertThrows(
                 ResponseStatusException.class,
-                () -> loanApplicationService.submitApplication(
+                () -> loanService.submitApplication(
                         memberId,
                         applicationId
                 )
@@ -312,7 +312,7 @@ public class LoanApplicationServiceTest {
 
         // UPDATE가 실행되지 않았는지 확인
         verify(
-                loanApplicationMapper,
+                loanMapper,
                 never()
         ).submitApplication(
                 anyLong(),
@@ -376,7 +376,7 @@ public class LoanApplicationServiceTest {
                 .build();
 
         // 5. Mock 동작 설정
-        when(loanApplicationMapper.findWritingByIdAndMember(
+        when(loanMapper.findWritingByIdAndMember(
                 applicationId, memberId
         )).thenReturn(application);
 
@@ -390,20 +390,20 @@ public class LoanApplicationServiceTest {
                 LocalDate.of(1998, 5, 10)
         )).thenReturn(limitResult);
 
-        when(loanApplicationMapper.submitApplication(
+        when(loanMapper.submitApplication(
                 applicationId,
                 memberId,
                 availableLimit,
                 interestRate
         )).thenReturn(1);
 
-        when(loanApplicationMapper.findByIdAndMember(
+        when(loanMapper.findByIdAndMember(
                 applicationId, memberId
         )).thenReturn(submittedApplication);
 
         // when: 최종 제출 실행
-        LoanApplicationSubmitResponse response =
-                loanApplicationService.submitApplication(
+        LoanSubmitResponse response =
+                loanService.submitApplication(
                         memberId,
                         applicationId
                 );
@@ -416,7 +416,7 @@ public class LoanApplicationServiceTest {
         assertEquals(appliedAt, response.getAppliedAt());
 
         // Mapper가 정확히 한 번 호출됐는지 확인
-        verify(loanApplicationMapper, times(1))
+        verify(loanMapper, times(1))
                 .submitApplication(
                         applicationId,
                         memberId,
@@ -440,8 +440,8 @@ public class LoanApplicationServiceTest {
         LocalDateTime appliedAt =
                 LocalDateTime.of(2026, 10, 20, 11, 0);
 
-        LoanApplicationDetailResponse detailResponse =
-                new LoanApplicationDetailResponse(
+        LoanDetailResponse detailResponse =
+                new LoanDetailResponse(
                         applicationId,
                         1L,
                         "직장인 신용대출",
@@ -460,14 +460,14 @@ public class LoanApplicationServiceTest {
                 );
 
         // Mapper가 상세 정보를 반환하도록 설정
-        when(loanApplicationMapper.findApplicationDetail(
+        when(loanMapper.findApplicationDetail(
                 applicationId,
                 memberId
         )).thenReturn(detailResponse);
 
         // when: Service 실행
-        LoanApplicationDetailResponse response =
-                loanApplicationService.getApplicationDetail(
+        LoanDetailResponse response =
+                loanService.getApplicationDetail(
                         memberId,
                         applicationId
                 );
@@ -483,7 +483,7 @@ public class LoanApplicationServiceTest {
         assertNull(response.getReviewedAt());
 
         // Mapper가 정확히 1번 호출되었는지 확인
-        verify(loanApplicationMapper, times(1))
+        verify(loanMapper, times(1))
                 .findApplicationDetail(applicationId, memberId);
     }
 

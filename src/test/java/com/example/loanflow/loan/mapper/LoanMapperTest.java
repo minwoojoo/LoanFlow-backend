@@ -1,7 +1,7 @@
 
 package com.example.loanflow.loan.mapper;
 
-import com.example.loanflow.loan.dto.response.LoanApplicationDetailResponse;
+import com.example.loanflow.loan.dto.response.LoanDetailResponse;
 import com.example.loanflow.loan.entity.LoanApplication;
 
 import org.junit.jupiter.api.DisplayName;
@@ -18,10 +18,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Transactional
-class LoanApplicationMapperTest {
+class LoanMapperTest {
 
     @Autowired
-    private LoanApplicationMapper loanApplicationMapper;
+    private LoanMapper loanMapper;
 
     private final Long memberId = 41L;
     private final Long productId = 1L;
@@ -39,7 +39,7 @@ class LoanApplicationMapperTest {
 
         // when
         LoanApplication application =
-                loanApplicationMapper.findWritingApplication(
+                loanMapper.findWritingApplication(
                         memberId,
                         productId
                 );
@@ -63,7 +63,7 @@ class LoanApplicationMapperTest {
 
         // when
         LoanApplication application =
-                loanApplicationMapper.findWritingApplication(
+                loanMapper.findWritingApplication(
                         memberId,
                         nonexistentProductId
                 );
@@ -88,7 +88,7 @@ class LoanApplicationMapperTest {
                 .build();
 
         // when
-        int rows = loanApplicationMapper.insertApplication(application);
+        int rows = loanMapper.insertApplication(application);
 
         // then
         assertEquals(1, rows);
@@ -113,13 +113,13 @@ class LoanApplicationMapperTest {
 
         // 먼저 신청서 생성
         int applicationRows =
-                loanApplicationMapper.insertApplication(application);
+                loanMapper.insertApplication(application);
 
         assertEquals(1, applicationRows);
         assertNotNull(application.getApplicationId());
 
         // when
-        int consentRows = loanApplicationMapper.insertConsent(
+        int consentRows = loanMapper.insertConsent(
                 application.getApplicationId(),
                 termsId
         );
@@ -138,7 +138,7 @@ class LoanApplicationMapperTest {
                 .applicationStatus("작성중")
                 .build();
 
-        int rows = loanApplicationMapper.insertApplication(application);
+        int rows = loanMapper.insertApplication(application);
 
         assertEquals(1, rows);
         assertNotNull(application.getApplicationId());
@@ -159,7 +159,7 @@ class LoanApplicationMapperTest {
         BigDecimal interestRate = new BigDecimal("5.5");
 
         // when: 최종 제출 UPDATE 실행
-        int updatedRows = loanApplicationMapper.submitApplication(
+        int updatedRows = loanMapper.submitApplication(
                 applicationId,
                 memberId,
                 availableLimit,
@@ -171,7 +171,7 @@ class LoanApplicationMapperTest {
 
         // DB에서 제출 완료된 신청서 조회
         LoanApplication submittedApplication =
-                loanApplicationMapper.findByIdAndMember(
+                loanMapper.findByIdAndMember(
                         applicationId,
                         memberId
                 );
@@ -213,8 +213,8 @@ class LoanApplicationMapperTest {
         Long applicationId = application.getApplicationId();
 
         // when: 신청서 상세 조회
-        LoanApplicationDetailResponse response =
-                loanApplicationMapper.findApplicationDetail(
+        LoanDetailResponse response =
+                loanMapper.findApplicationDetail(
                         applicationId,
                         memberId
                 );
@@ -252,8 +252,8 @@ class LoanApplicationMapperTest {
         Long otherMemberId = -1L;
 
         // when
-        LoanApplicationDetailResponse response =
-                loanApplicationMapper.findApplicationDetail(
+        LoanDetailResponse response =
+                loanMapper.findApplicationDetail(
                         applicationId,
                         otherMemberId
                 );

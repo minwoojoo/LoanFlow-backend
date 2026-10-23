@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.loanflow.review.mapper.LoanProcessingLogMapper">
+
+    <insert id="insertLog" parameterType="LoanProcessingLog">
+        INSERT INTO loan_processing_log(
+                                        application_id,
+                                        request_id,
+                                        process_type,
+                                        process_status,
+                                        error_code,
+                                        error_message,
+                                        created_at
+        )
+        VALUES (
+                #{applicationId},
+                #{requestId},
+                #{processType},
+                #{processStatus},
+                #{errorCode, jdbcType=VARCHAR},
+                #{errorMessage,jdbcType=VARCHAR},
+                CAST(SYSTIMESTAMP AT TIME ZONE 'Asia/Seoul' AS TIMESTAMP)
+               )
+    </insert>
+
+
+    <select id="findAllProcessingLogs" resultType="AdminProcessingLogReadResponse">
+        SELECT
+            lpl.log_id,
+            lpl.application_id,
+            la.member_id,
+            m.name AS member_name,
+            lp.product_name,
+            lpl.process_type,
+            lpl.process_status,
+            lpl.created_at
+
+        FROM loan_processing_log lpl
+        INNER JOIN loan_application la
+            ON lpl.application_id = la.application_id
+
+        INNER JOIN member m
+            ON la.member_id = m.member_id
+
+        INNER JOIN loan_product lp
+            ON la.product_id = lp.product_id
+
+        ORDER BY lpl.created_at DESC,
+                 lpl.log_id DESC
+
+    </select>
+
+
+
+    <select id="findProcessingLogDetail" resultType="AdminProcessingLogDetailResponse">
+        SELECT
+            lpl.log_id,
+            lpl.application_id,
+            lpl.request_id,
+
+            la.member_id,
+            m.name AS member_name,
+
+            la.product_id,
+            lp.product_name,
+
+            lpl.process_type,
+            lpl.process_status,
+
+            lpl.error_code,
+            lpl.error_message,
+
+            lpl.created_at
+
+        FROM loan_processing_log lpl
+
+                 INNER JOIN loan_application la
+                            ON lpl.application_id = la.application_id
+
+                 INNER JOIN member m
+                            ON la.member_id = m.member_id
+
+                 INNER JOIN loan_product lp
+                            ON la.product_id = lp.product_id
+
+        WHERE lpl.log_id = #{logId}
+    </select>
+</mapper>

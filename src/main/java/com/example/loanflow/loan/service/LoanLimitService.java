@@ -5,7 +5,7 @@ import com.example.loanflow.loan.dto.response.LoanLimitCheckResponse;
 import com.example.loanflow.loan.entity.LoanApplication;
 import com.example.loanflow.loan.entity.LoanEmploymentPolicy;
 import com.example.loanflow.loan.entity.LoanProduct;
-import com.example.loanflow.loan.mapper.LoanApplicationMapper;
+import com.example.loanflow.loan.mapper.LoanMapper;
 import com.example.loanflow.loan.mapper.LoanLimitMapper;
 import com.example.loanflow.loan.mapper.LoanProductMapper;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,7 @@ import java.time.Period;
 @RequiredArgsConstructor
 public class LoanLimitService {
 
-    private final LoanApplicationMapper loanApplicationMapper;
+    private final LoanMapper loanMapper;
     private final LoanProductMapper loanProductMapper;
     private final LoanLimitMapper loanLimitMapper;
 
@@ -38,7 +38,7 @@ public class LoanLimitService {
 
         // 1. 작성 중인 신청서 조회 및 소유권 검증
         LoanApplication application =
-                loanApplicationMapper.findWritingByIdAndMember(
+                loanMapper.findWritingByIdAndMember(
                         request.getApplicationId(),
                         memberId
                 );

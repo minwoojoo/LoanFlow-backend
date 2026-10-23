@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class LoanApplicationCreateResponse {
+public class LoanCreateResponse {
 
     private Long applicationId;
 

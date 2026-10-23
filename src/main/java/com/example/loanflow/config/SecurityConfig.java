@@ -39,6 +39,8 @@ public class SecurityConfig {
                         "/api/callback/review-results"
                 ).permitAll()
 
+                .antMatchers("/api/admin/**").hasRole("ADMIN")
+
                 .antMatchers(
                         "/swagger-ui/**",
                         "/swagger-ui.html",

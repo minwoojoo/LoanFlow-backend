@@ -16,8 +16,8 @@ public class RestTemplateConfig {
         // 서버 연결 최대 대기 시간: 5초
         factory.setConnectTimeout(5000);
 
-        // 서버 응답 최대 대기 시간: 10초
-        factory.setReadTimeout(10000);
+        // 서버 응답 최대 대기 시간: 7초
+        factory.setReadTimeout(70000);
 
         return new RestTemplate(factory);
     }

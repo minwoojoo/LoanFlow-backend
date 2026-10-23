@@ -1,10 +1,12 @@
-
 package com.example.loanflow.review.listener;
 
 import com.example.loanflow.review.event.ReviewRequestedEvent;
+import com.example.loanflow.review.service.LoanProcessingLogService;
 import com.example.loanflow.review.service.ReviewService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -15,25 +17,67 @@ import org.springframework.transaction.event.TransactionalEventListener;
 public class ReviewEventListener {
 
     private final ReviewService reviewService;
+    private final LoanProcessingLogService loanProcessingLogService;
 
-    @TransactionalEventListener(
-            phase = TransactionPhase.AFTER_COMMIT
-    )
-    public void handleReviewRequested(
-            ReviewRequestedEvent event
-    ) {
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleReviewRequested(ReviewRequestedEvent event) {
+
+        Long applicationId = event.getApplicationId();
+        String requestId = event.getRequestId();
 
         try {
-            reviewService.requestReview(
-                    event.getApplicationId(),
-                    event.getRequestId()
-            );
+            // 1. Mock 서버에 심사 요청 전송
+            reviewService.requestReview(applicationId, requestId);
 
         } catch (Exception e) {
+            // 2. 심사 요청 실패 로그
             log.error(
-                    "Mock 심사 요청 실패 - applicationId: {}, requestId: {}",
-                    event.getApplicationId(),
-                    event.getRequestId(),
+                    "Mock 심사 요청 실패 - applicationId: {}",
+                    applicationId,
+                    e
+            );
+
+            saveProcessingLog(
+                    applicationId,
+                    requestId,
+                    "FAILED",
+                    "REVIEW_REQUEST_ERROR",
+                    e.getMessage()
+            );
+            return;
+        }
+
+        // 3. 심사 요청 접수 성공 로그
+        saveProcessingLog(
+                applicationId,
+                requestId,
+                "SUCCESS",
+                null,
+                null
+        );
+    }
+
+    private void saveProcessingLog(
+            Long applicationId,
+            String requestId,
+            String status,
+            String errorCode,
+            String errorMessage
+    ) {
+        try {
+            loanProcessingLogService.saveLog(
+                    applicationId,
+                    requestId,
+                    "REVIEW_REQUEST",
+                    status,
+                    errorCode,
+                    errorMessage
+            );
+        } catch (Exception e) {
+            log.error(
+                    "심사 처리 로그 저장 실패 - applicationId: {}, status: {}",
+                    applicationId,
+                    status,
                     e
             );
         }

@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoanApplicationDetailResponse {
+public class LoanDetailResponse {
     private Long applicationId;
 
     private Long productId;

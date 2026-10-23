@@ -1,8 +1,10 @@
 package com.example.loanflow.loan.mapper;
 
-import com.example.loanflow.loan.dto.request.LoanApplicationUpdateRequest;
-import com.example.loanflow.loan.dto.response.LoanApplicationDetailResponse;
-import com.example.loanflow.loan.dto.response.LoanApplicationReadResponse;
+import com.example.loanflow.admin.dto.AdminLoanDetailResponse;
+import com.example.loanflow.admin.dto.AdminLoanReadResponse;
+import com.example.loanflow.loan.dto.request.LoanUpdateRequest;
+import com.example.loanflow.loan.dto.response.LoanDetailResponse;
+import com.example.loanflow.loan.dto.response.LoanReadResponse;
 import com.example.loanflow.loan.entity.LoanApplication;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -11,7 +13,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Mapper
-public interface LoanApplicationMapper {
+public interface LoanMapper {
 
     // 작성 중 대출 신청서 생성
     int insertApplication(LoanApplication application);
@@ -37,7 +39,7 @@ public interface LoanApplicationMapper {
     int updateApplicationDraft(
             @Param("applicationId") Long applicationId,
             @Param("memberId") Long memberId,
-            @Param("request") LoanApplicationUpdateRequest request
+            @Param("request") LoanUpdateRequest request
     );
 
     // 최종 제출 처리
@@ -56,12 +58,12 @@ public interface LoanApplicationMapper {
 
 
     // 내 대출 신청 목록 조회
-    List<LoanApplicationReadResponse> findMyApplications(
+    List<LoanReadResponse> findMyApplications(
             @Param("memberId") Long memberId
     );
 
     // 대출 신청 상세 조회
-    LoanApplicationDetailResponse findApplicationDetail(
+    LoanDetailResponse findApplicationDetail(
             @Param("applicationId") Long applicationId,
             @Param("memberId") Long memberId
     );
@@ -78,5 +80,13 @@ public interface LoanApplicationMapper {
             @Param("requestId") String requestId,
             @Param("reviewResultId") String reviewResultId,
             @Param("applicationStatus") String applicationStatus
+    );
+
+    // 운영자 - 전체 대출 신청 목록 조회
+    List<AdminLoanReadResponse> findAllApplications();
+
+    // 운영자 - 대출 신청 상세 조회
+    AdminLoanDetailResponse findAdminApplicationDetail(
+            @Param("applicationId") Long applicationId
     );
 }

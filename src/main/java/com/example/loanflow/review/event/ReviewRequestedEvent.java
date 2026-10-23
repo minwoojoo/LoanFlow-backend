@@ -1,4 +1,3 @@
-
 package com.example.loanflow.review.event;
 
 import lombok.AllArgsConstructor;

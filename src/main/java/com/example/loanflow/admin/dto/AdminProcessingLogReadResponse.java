@@ -1,4 +1,5 @@
-package com.example.loanflow.loan.dto.response;
+package com.example.loanflow.admin.dto;
+
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -7,18 +8,22 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Getter
-@AllArgsConstructor
 @NoArgsConstructor
-public class LoanApplicationReadResponse {
+@AllArgsConstructor
+public class AdminProcessingLogReadResponse {
+    private Long logId;
+
     private Long applicationId;
+
+    private Long memberId;
+
+    private String memberName;
 
     private String productName;
 
-    private Long applicationAmount;
+    private String processType;
 
-    private String applicationStatus;
+    private String processStatus;
 
     private LocalDateTime createdAt;
-
-    private LocalDateTime appliedAt;
 }

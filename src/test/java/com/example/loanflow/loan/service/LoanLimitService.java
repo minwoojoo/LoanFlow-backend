@@ -6,7 +6,7 @@ import com.example.loanflow.loan.dto.response.LoanLimitCheckResponse;
 import com.example.loanflow.loan.entity.LoanApplication;
 import com.example.loanflow.loan.entity.LoanEmploymentPolicy;
 import com.example.loanflow.loan.entity.LoanProduct;
-import com.example.loanflow.loan.mapper.LoanApplicationMapper;
+import com.example.loanflow.loan.mapper.LoanMapper;
 import com.example.loanflow.loan.mapper.LoanLimitMapper;
 import com.example.loanflow.loan.mapper.LoanProductMapper;
 
@@ -32,7 +32,7 @@ import static org.mockito.Mockito.*;
 class LoanLimitServiceTest {
 
     @Mock
-    private LoanApplicationMapper loanApplicationMapper;
+    private LoanMapper loanMapper;
 
     @Mock
     private LoanProductMapper loanProductMapper;
@@ -103,7 +103,7 @@ class LoanLimitServiceTest {
 
         // 공통 Mapper 동작
         lenient().when(
-                loanApplicationMapper.findWritingByIdAndMember(
+                loanMapper.findWritingByIdAndMember(
                         applicationId, memberId
                 )
         ).thenReturn(application);
@@ -197,7 +197,7 @@ class LoanLimitServiceTest {
     @DisplayName("작성 중인 신청서가 없으면 404를 반환한다")
     void checkLimit_applicationNotFound() {
 
-        when(loanApplicationMapper.findWritingByIdAndMember(
+        when(loanMapper.findWritingByIdAndMember(
                 applicationId, memberId
         )).thenReturn(null);
 

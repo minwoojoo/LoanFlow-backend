@@ -2,7 +2,7 @@
 package com.example.loanflow.review.service;
 
 import com.example.loanflow.loan.entity.LoanApplication;
-import com.example.loanflow.loan.mapper.LoanApplicationMapper;
+import com.example.loanflow.loan.mapper.LoanMapper;
 import com.example.loanflow.review.dto.ReviewCallbackRequest;
 
 import org.junit.jupiter.api.Test;
@@ -23,7 +23,7 @@ import static org.springframework.http.HttpStatus.*;
 class ReviewCallbackServiceTest {
 
     @Mock
-    private LoanApplicationMapper loanApplicationMapper;
+    private LoanMapper loanMapper;
 
     @InjectMocks
     private ReviewCallbackService reviewCallbackService;
@@ -61,11 +61,11 @@ class ReviewCallbackServiceTest {
         ReviewCallbackRequest request =
                 createRequest(15L, "REQ-001", "RESULT-001", "APPROVED");
 
-        when(loanApplicationMapper.findByApplicationAndRequestId(
+        when(loanMapper.findByApplicationAndRequestId(
                 15L, "REQ-001"
         )).thenReturn(createApplication("심사중", null));
 
-        when(loanApplicationMapper.updateReviewResult(
+        when(loanMapper.updateReviewResult(
                 15L, "REQ-001", "RESULT-001", "승인"
         )).thenReturn(1);
 
@@ -73,7 +73,7 @@ class ReviewCallbackServiceTest {
                 reviewCallbackService.processResult(request)
         );
 
-        verify(loanApplicationMapper).updateReviewResult(
+        verify(loanMapper).updateReviewResult(
                 15L, "REQ-001", "RESULT-001", "승인"
         );
     }
@@ -85,11 +85,11 @@ class ReviewCallbackServiceTest {
         ReviewCallbackRequest request =
                 createRequest(15L, "REQ-001", "RESULT-002", "REJECTED");
 
-        when(loanApplicationMapper.findByApplicationAndRequestId(
+        when(loanMapper.findByApplicationAndRequestId(
                 15L, "REQ-001"
         )).thenReturn(createApplication("심사중", null));
 
-        when(loanApplicationMapper.updateReviewResult(
+        when(loanMapper.updateReviewResult(
                 15L, "REQ-001", "RESULT-002", "거절"
         )).thenReturn(1);
 
@@ -97,7 +97,7 @@ class ReviewCallbackServiceTest {
                 reviewCallbackService.processResult(request)
         );
 
-        verify(loanApplicationMapper).updateReviewResult(
+        verify(loanMapper).updateReviewResult(
                 15L, "REQ-001", "RESULT-002", "거절"
         );
     }
@@ -109,7 +109,7 @@ class ReviewCallbackServiceTest {
         ReviewCallbackRequest request =
                 createRequest(15L, "REQ-001", "RESULT-001", "APPROVED");
 
-        when(loanApplicationMapper.findByApplicationAndRequestId(
+        when(loanMapper.findByApplicationAndRequestId(
                 15L, "REQ-001"
         )).thenReturn(createApplication("승인", "RESULT-001"));
 
@@ -117,7 +117,7 @@ class ReviewCallbackServiceTest {
                 reviewCallbackService.processResult(request)
         );
 
-        verify(loanApplicationMapper, never()).updateReviewResult(
+        verify(loanMapper, never()).updateReviewResult(
                 anyLong(), anyString(), anyString(), anyString()
         );
     }
@@ -129,7 +129,7 @@ class ReviewCallbackServiceTest {
         ReviewCallbackRequest request =
                 createRequest(15L, "REQ-001", "RESULT-002", "REJECTED");
 
-        when(loanApplicationMapper.findByApplicationAndRequestId(
+        when(loanMapper.findByApplicationAndRequestId(
                 15L, "REQ-001"
         )).thenReturn(createApplication("승인", "RESULT-001"));
 
@@ -140,7 +140,7 @@ class ReviewCallbackServiceTest {
 
         assertEquals(CONFLICT, exception.getStatus());
 
-        verify(loanApplicationMapper, never()).updateReviewResult(
+        verify(loanMapper, never()).updateReviewResult(
                 anyLong(), anyString(), anyString(), anyString()
         );
     }
@@ -152,7 +152,7 @@ class ReviewCallbackServiceTest {
         ReviewCallbackRequest request =
                 createRequest(15L, "REQ-001", "RESULT-001", "APPROVED");
 
-        when(loanApplicationMapper.findByApplicationAndRequestId(
+        when(loanMapper.findByApplicationAndRequestId(
                 15L, "REQ-001"
         )).thenReturn(null);
 
@@ -178,6 +178,6 @@ class ReviewCallbackServiceTest {
 
         assertEquals(BAD_REQUEST, exception.getStatus());
 
-        verifyNoInteractions(loanApplicationMapper);
+        verifyNoInteractions(loanMapper);
     }
 }

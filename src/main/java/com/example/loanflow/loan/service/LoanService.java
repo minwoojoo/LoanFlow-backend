@@ -1,12 +1,12 @@
 
 package com.example.loanflow.loan.service;
 
-import com.example.loanflow.loan.dto.request.LoanApplicationCreateRequest;
-import com.example.loanflow.loan.dto.request.LoanApplicationUpdateRequest;
+import com.example.loanflow.loan.dto.request.LoanCreateRequest;
+import com.example.loanflow.loan.dto.request.LoanUpdateRequest;
 import com.example.loanflow.loan.dto.response.*;
 import com.example.loanflow.loan.entity.LoanApplication;
 import com.example.loanflow.loan.entity.LoanProduct;
-import com.example.loanflow.loan.mapper.LoanApplicationMapper;
+import com.example.loanflow.loan.mapper.LoanMapper;
 import com.example.loanflow.loan.mapper.LoanProductMapper;
 
 import com.example.loanflow.review.event.ReviewRequestedEvent;
@@ -29,9 +29,9 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class LoanApplicationService {
+public class LoanService {
 
-    private final LoanApplicationMapper loanApplicationMapper;
+    private final LoanMapper loanMapper;
     private final LoanProductMapper loanProductMapper;
     private final TermsMapper termsMapper;
     private final LoanLimitService loanLimitService;
@@ -43,9 +43,9 @@ public class LoanApplicationService {
     // 1. 신규 대출 신청서 생성
     // ==========================
     @Transactional
-    public LoanApplicationCreateResponse createApplication(
+    public LoanCreateResponse createApplication(
             Long memberId,
-            LoanApplicationCreateRequest request
+            LoanCreateRequest request
     ) {
 
         // 1. 선택한 대출 상품 확인
@@ -61,7 +61,7 @@ public class LoanApplicationService {
         }
 
         // 2. 동일 회원, 동일 상품의 기존 신청서 확인 및 중복 생성 방지
-        LoanApplication existingApplication = loanApplicationMapper.findWritingApplication(
+        LoanApplication existingApplication = loanMapper.findWritingApplication(
                 memberId,
                 request.getProductId()
         );
@@ -137,7 +137,7 @@ public class LoanApplicationService {
 
         // 10. 신청서 INSERT
         int applicationRows =
-                loanApplicationMapper.insertApplication(application);
+                loanMapper.insertApplication(application);
 
         if (applicationRows != 1 ||
                 application.getApplicationId() == null) {
@@ -150,7 +150,7 @@ public class LoanApplicationService {
 
         // 11. 약관 동의 내역 INSERT
         for (Long termsId : agreedTermsIds) {
-            int consentRows = loanApplicationMapper.insertConsent(
+            int consentRows = loanMapper.insertConsent(
                     applicationId,
                     termsId
             );
@@ -163,7 +163,7 @@ public class LoanApplicationService {
         }
 
         // 12. 생성 결과 반환
-        return new LoanApplicationCreateResponse(
+        return new LoanCreateResponse(
                 applicationId,
                 "작성중"
         );
@@ -177,12 +177,12 @@ public class LoanApplicationService {
     // 2. 작성 중인 대출 신청서 조회
     // ==========================
     @Transactional(readOnly = true)
-    public LoanApplicationDraftResponse findDraft(
+    public LoanDraftResponse findDraft(
             Long memberId,
             Long productId
     ){
         // 1. 동일 회원, 동일 상품의 작성 중 신청서 조회
-        LoanApplication application = loanApplicationMapper.findWritingApplication(
+        LoanApplication application = loanMapper.findWritingApplication(
                 memberId,
                 productId
         );
@@ -196,7 +196,7 @@ public class LoanApplicationService {
         }
 
         // 3. Entity -> Response DTO 변환
-        return new LoanApplicationDraftResponse(
+        return new LoanDraftResponse(
                 application.getApplicationId(),
                 application.getProductId(),
                 application.getApplicationStatus(),
@@ -214,15 +214,15 @@ public class LoanApplicationService {
 
 
     @Transactional
-    public LoanApplicationUpdateResponse updateApplicationDraft(
+    public LoanUpdateResponse updateApplicationDraft(
             Long memberId,
             Long applicationId,
-            LoanApplicationUpdateRequest request
+            LoanUpdateRequest request
     ) {
 
         // 1. 작성 중인 신청서 조회 및 소유권 확인
         LoanApplication application =
-                loanApplicationMapper.findWritingByIdAndMember(
+                loanMapper.findWritingByIdAndMember(
                         applicationId,
                         memberId
                 );
@@ -346,7 +346,7 @@ public class LoanApplicationService {
 
         // 7. 모든 검증 성공 후 임시저장
         int updatedRows =
-                loanApplicationMapper.updateApplicationDraft(
+                loanMapper.updateApplicationDraft(
                         applicationId,
                         memberId,
                         request
@@ -362,7 +362,7 @@ public class LoanApplicationService {
 
         // 8. 저장된 신청서 다시 조회
         LoanApplication updatedApplication =
-                loanApplicationMapper.findWritingByIdAndMember(
+                loanMapper.findWritingByIdAndMember(
                         applicationId,
                         memberId
                 );
@@ -375,7 +375,7 @@ public class LoanApplicationService {
 
 
         // 9. 응답 DTO 반환
-        return new LoanApplicationUpdateResponse(
+        return new LoanUpdateResponse(
                 updatedApplication.getApplicationId(),
                 updatedApplication.getApplicationStatus(),
                 updatedApplication.getApplicationAmount(),
@@ -390,14 +390,14 @@ public class LoanApplicationService {
 
 
     @Transactional
-    public LoanApplicationSubmitResponse submitApplication(
+    public LoanSubmitResponse submitApplication(
             Long memberId,
             Long applicationId
     ) {
 
         // 1. 작성 중인 신청서 조회 및 소유권 검증
         LoanApplication application =
-                loanApplicationMapper.findWritingByIdAndMember(
+                loanMapper.findWritingByIdAndMember(
                         applicationId,
                         memberId
                 );
@@ -491,7 +491,7 @@ public class LoanApplicationService {
         }
 
         // 8. 최종 제출 처리
-        int updatedRows = loanApplicationMapper.submitApplication(
+        int updatedRows = loanMapper.submitApplication(
                 applicationId,
                 memberId,
                 availableLimit,
@@ -507,7 +507,7 @@ public class LoanApplicationService {
 
         // 9. 최종 제출된 신청서 다시 조회
         LoanApplication submittedApplication =
-                loanApplicationMapper.findByIdAndMember(
+                loanMapper.findByIdAndMember(
                         applicationId,
                         memberId
                 );
@@ -534,7 +534,7 @@ public class LoanApplicationService {
 
 
         // 10. 응답 DTO 반환
-        return new LoanApplicationSubmitResponse(
+        return new LoanSubmitResponse(
                 submittedApplication.getApplicationId(),
                 submittedApplication.getApplicationStatus(),
                 submittedApplication.getAvailableLimit(),
@@ -546,23 +546,23 @@ public class LoanApplicationService {
 
     // 대출 신청 목록 조회
     @Transactional(readOnly = true)
-    public List<LoanApplicationReadResponse> getMyApplications(
+    public List<LoanReadResponse> getMyApplications(
             Long memberId
     ) {
-        return loanApplicationMapper.findMyApplications(memberId);
+        return loanMapper.findMyApplications(memberId);
     }
 
 
     // 대출 신청 상세 조회
     @Transactional(readOnly = true)
-    public LoanApplicationDetailResponse getApplicationDetail(
+    public LoanDetailResponse getApplicationDetail(
             Long memberId,
             Long applicationId
     ) {
 
         // 1. 로그인한 회원의 신청서 상세 조회
-        LoanApplicationDetailResponse response =
-                loanApplicationMapper.findApplicationDetail(
+        LoanDetailResponse response =
+                loanMapper.findApplicationDetail(
                         applicationId,
                         memberId
                 );

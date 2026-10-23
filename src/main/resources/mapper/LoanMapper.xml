@@ -3,7 +3,7 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.example.loanflow.loan.mapper.LoanApplicationMapper">
+<mapper namespace="com.example.loanflow.loan.mapper.LoanMapper">
     <insert id="insertApplication"
             parameterType="LoanApplication"
             useGeneratedKeys="true"
@@ -37,7 +37,7 @@
             #{applicationId},
             #{termsId},
             'Y',
-            CURRENT_TIMESTAMP
+            CAST(SYSTIMESTAMP AT TIME ZONE 'Asia/Seoul' AS TIMESTAMP)
         )
 
     </insert>
@@ -112,7 +112,7 @@
                 birth_date = #{request.birthDate},
             </if>
 
-            updated_at = CURRENT_TIMESTAMP
+            updated_at = CAST(SYSTIMESTAMP AT TIME ZONE 'Asia/Seoul' AS TIMESTAMP)
         </set>
 
         WHERE application_id = #{applicationId}
@@ -129,8 +129,8 @@
             application_status = '심사중',
             available_limit = #{availableLimit},
             estimated_interest_rate = #{estimatedInterestRate},
-            applied_at = SYSTIMESTAMP,
-            updated_at = SYSTIMESTAMP
+            applied_at = CAST(SYSTIMESTAMP AT TIME ZONE 'Asia/Seoul' AS TIMESTAMP),
+            updated_at = CAST(SYSTIMESTAMP AT TIME ZONE 'Asia/Seoul' AS TIMESTAMP)
         WHERE application_id = #{applicationId}
             AND member_id = #{memberId}
             AND application_status = '작성중'
@@ -162,7 +162,7 @@
 
 
     <select id="findMyApplications"
-            resultType="com.example.loanflow.loan.dto.response.LoanApplicationReadResponse">
+            resultType="LoanApplicationReadResponse">
 
         SELECT
             la.application_id,
@@ -189,7 +189,7 @@
 
 
     <select id="findApplicationDetail"
-            resultType="com.example.loanflow.loan.dto.response.LoanApplicationDetailResponse">
+            resultType="LoanApplicationDetailResponse">
 
         SELECT
             la.application_id,
@@ -239,8 +239,8 @@
         SET
             application_status = #{applicationStatus},
             review_result_id = #{reviewResultId},
-            reviewed_at = SYSTIMESTAMP,
-            updated_at = SYSTIMESTAMP
+            reviewed_at = CAST(SYSTIMESTAMP AT TIME ZONE 'Asia/Seoul' AS TIMESTAMP),
+            updated_at = CAST(SYSTIMESTAMP AT TIME ZONE 'Asia/Seoul' AS TIMESTAMP)
         WHERE application_id = #{applicationId}
             AND request_id = #{requestId}
             AND application_status = '심사중'
@@ -248,5 +248,74 @@
 
     </update>
 
+    <select id="findAllApplications" resultType="AdminLoanApplicationReadResponse">
+
+        SELECT
+            la.application_id,
+            la.member_id,
+            m.name AS member_name,
+            la.product_id,
+            lp.product_name,
+            la.application_amount,
+            la.application_status,
+            la.created_at,
+            la.applied_at,
+            la.reviewed_at,
+            la.is_deleted
+
+        FROM loan_application la
+
+        INNER JOIN member m
+            ON la.member_id = m.member_id
+
+        INNER JOIN loan_product lp
+            ON la.product_id = lp.product_id
+
+        ORDER BY la.created_at DESC,
+        la.application_id DESC
+
+    </select>
+
+
+    <select id="findAdminApplicationDetail" resultType="AdminLoanApplicationDetailResponse">
+        SELECT
+            la.application_id,
+            la.member_id,
+            m.name AS member_name,
+
+            la.product_id,
+            lp.product_name,
+            lp.max_loan_term,
+
+            la.application_amount,
+            la.loan_term,
+            la.available_limit,
+            la.estimated_interest_rate,
+
+            la.employment_type,
+            la.annual_income,
+            la.birth_date,
+
+            la.application_status,
+            la.request_id,
+            la.review_result_id,
+
+            la.is_deleted,
+            la.deleted_at,
+
+            la.created_at,
+            la.applied_at,
+            la.reviewed_at
+
+        FROM loan_application la
+
+        INNER JOIN member m
+            ON la.member_id = m.member_id
+
+        INNER JOIN loan_product lp
+            ON la.product_id = lp.product_id
+
+        WHERE la.application_id = #{applicationId}
+    </select>
 
 </mapper>

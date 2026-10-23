@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @AllArgsConstructor
-public class LoanApplicationSubmitResponse {
+public class LoanSubmitResponse {
 
     private Long applicationId;
 

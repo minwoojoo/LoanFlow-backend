@@ -38,7 +38,7 @@
             employment_type = #{request.employmentType},
             annual_income = #{request.annualIncome},
             birth_date = #{request.birthDate},
-            updated_at = SYSDATE
+            updated_at = CAST(SYSTIMESTAMP AT TIME ZONE 'Asia/Seoul' AS TIMESTAMP)
         WHERE member_id = #{memberId}
     </update>
 
