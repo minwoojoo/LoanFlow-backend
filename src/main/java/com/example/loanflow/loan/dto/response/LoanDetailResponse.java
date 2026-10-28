@@ -32,7 +32,7 @@ public class LoanDetailResponse {
 
     private LocalDate birthDate;
 
-    private String applicationStatus;
+    private String statusName;
 
     private LocalDateTime createdAt;
 

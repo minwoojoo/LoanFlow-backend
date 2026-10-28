@@ -8,6 +8,8 @@ import com.example.loanflow.loan.entity.LoanApplication;
 import com.example.loanflow.loan.entity.LoanProduct;
 import com.example.loanflow.loan.mapper.LoanMapper;
 import com.example.loanflow.loan.mapper.LoanProductMapper;
+import com.example.loanflow.activity.service.UserActivityLogService;
+import com.example.loanflow.activity.enums.UserActivityEventType;
 
 import com.example.loanflow.review.event.ReviewRequestedEvent;
 import com.example.loanflow.terms.entity.Terms;
@@ -36,6 +38,7 @@ public class LoanService {
     private final TermsMapper termsMapper;
     private final LoanLimitService loanLimitService;
     private final ApplicationEventPublisher eventPublisher;
+    private final UserActivityLogService userActivityLogService;
 
 
 
@@ -132,12 +135,12 @@ public class LoanService {
                 .memberId(memberId)
                 .productId(product.getProductId())
                 .requestId(UUID.randomUUID().toString())
-                .applicationStatus("작성중")
+                .statusCode("01")
                 .build();
 
         // 10. 신청서 INSERT
         int applicationRows =
-                loanMapper.insertApplication(application);
+                loanMapper.createApplication(application);
 
         if (applicationRows != 1 ||
                 application.getApplicationId() == null) {
@@ -162,7 +165,15 @@ public class LoanService {
             }
         }
 
-        // 12. 생성 결과 반환
+        // 12. 신청서 생성 활동 로그 기록
+        userActivityLogService.recordEvent(
+                memberId,
+                applicationId,
+                UserActivityEventType.APPLICATION_CREATE
+        );
+
+
+        // 13. 생성 결과 반환
         return new LoanCreateResponse(
                 applicationId,
                 "작성중"
@@ -196,10 +207,12 @@ public class LoanService {
         }
 
         // 3. Entity -> Response DTO 변환
+        String statusName = loanMapper.findStatusNameByCode(application.getStatusCode());
+
         return new LoanDraftResponse(
                 application.getApplicationId(),
                 application.getProductId(),
-                application.getApplicationStatus(),
+                statusName,
                 application.getApplicationAmount(),
                 application.getBirthDate(),
                 application.getEmploymentType(),
@@ -375,14 +388,20 @@ public class LoanService {
 
 
         // 9. 응답 DTO 반환
+        String statusName = loanMapper.findStatusNameByCode(updatedApplication.getStatusCode());
+
         return new LoanUpdateResponse(
                 updatedApplication.getApplicationId(),
-                updatedApplication.getApplicationStatus(),
+                updatedApplication.getMemberId(),
+                updatedApplication.getProductId(),
+                statusName,
                 updatedApplication.getApplicationAmount(),
                 updatedApplication.getLoanTerm(),
                 updatedApplication.getEmploymentType(),
                 updatedApplication.getAnnualIncome(),
-                updatedApplication.getBirthDate()
+                updatedApplication.getBirthDate(),
+                updatedApplication.getAvailableLimit(),
+                updatedApplication.getEstimatedInterestRate()
         );
     }
 
@@ -524,6 +543,14 @@ public class LoanService {
             );
         }
 
+        // 10. 신청서 최종 제출 활동 로그 기록
+        userActivityLogService.recordEvent(
+                memberId,
+                submittedApplication.getApplicationId(),
+                UserActivityEventType.APPLICATION_SUBMIT
+        );
+
+
         // 심사 요청 이벤트 발행
         eventPublisher.publishEvent(
                 new ReviewRequestedEvent(
@@ -533,10 +560,19 @@ public class LoanService {
         );
 
 
-        // 10. 응답 DTO 반환
+        // 11. 대출 신청 상태명 조회
+        String statusName = loanMapper.findStatusNameByCode(submittedApplication.getStatusCode());
+
+        if (statusName == null){
+            throw new IllegalStateException(
+                    "대출 신청 상태명을 조회할 수 없습니다."
+            );
+        }
+
+        // 11. 응답 DTO 반환
         return new LoanSubmitResponse(
                 submittedApplication.getApplicationId(),
-                submittedApplication.getApplicationStatus(),
+                statusName,
                 submittedApplication.getAvailableLimit(),
                 submittedApplication.getEstimatedInterestRate(),
                 submittedApplication.getAppliedAt()
@@ -577,5 +613,25 @@ public class LoanService {
 
         // 3. 조회 결과 반환
         return response;
+    }
+
+
+    // 작성 중인 대출 신청서 삭제
+    @Transactional
+    public void deleteApplication(
+            Long memberId,
+            Long applicationId
+    ){
+        int number = loanMapper.deleteApplication(
+                memberId,
+                applicationId
+        );
+
+        if (number != 1){
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "삭제 가능한 대출 신청서가 없습니다."
+            );
+        }
     }
 }

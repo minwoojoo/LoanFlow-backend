@@ -19,6 +19,8 @@ public class LoanApplication {
 
     private Long productId;
 
+    private String statusCode;
+
     private String requestId;
 
     private Long applicationAmount;
@@ -32,8 +34,6 @@ public class LoanApplication {
     private Long availableLimit;
 
     private BigDecimal estimatedInterestRate;
-
-    private String applicationStatus;
 
     private Long loanTerm;
 

@@ -31,5 +31,68 @@
         WHERE terms_id = #{termsId}
         AND is_active = 'Y'
     </select>
+
+
+    <select id="findById" resultType="Terms">
+        SELECT
+            terms_id,
+            terms_name,
+            content,
+            terms_code,
+            terms_version,
+            required_yn,
+            is_active
+        FROM terms
+        WHERE terms_id = #{termsId}
+    </select>
+
+
+    <select id="findAll" resultType="Terms">
+        SELECT
+        terms_id,
+        terms_name,
+        content,
+        terms_code,
+        terms_version,
+        required_yn,
+        is_active
+        FROM terms
+        ORDER BY terms_id DESC
+    </select>
+
+
+    <select id="countByCodeAndVersion" resultType="int">
+        SELECT COUNT(*)
+        FROM terms
+        WHERE terms_code = #{termsCode}
+            AND terms_version = #{termsVersion}
+    </select>
+
+
+    <insert id="createTerms" parameterType="TermsCreateRequest">
+        INSERT INTO terms(
+            terms_name,
+            terms_code,
+            terms_version,
+            content,
+            required_yn,
+            is_active
+        ) VALUES(
+            #{termsName},
+            #{termsCode},
+            #{termsVersion},
+            #{content},
+            #{requiredYn},
+            'Y'
+        )
+    </insert>
+
+
+    <update id="deactivateTerms">
+        UPDATE terms
+        SET is_active = 'N'
+        WHERE terms_id = #{termsId}
+            AND is_active = 'Y'
+    </update>
 </mapper>
 

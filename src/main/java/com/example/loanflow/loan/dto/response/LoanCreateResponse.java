@@ -9,5 +9,5 @@ public class LoanCreateResponse {
 
     private Long applicationId;
 
-    private String applicationStatus;
+    private String statusName;
 }

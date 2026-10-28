@@ -35,7 +35,7 @@ public class AdminLoanDetailResponse {
     private LocalDate birthDate;
 
     // 신청 및 심사 상태
-    private String applicationStatus;
+    private String statusName;
     private String requestId;
     private String reviewResultId;
 

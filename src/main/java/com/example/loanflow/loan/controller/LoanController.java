@@ -138,4 +138,22 @@ public class LoanController {
         return ResponseEntity.ok(response);
     }
 
+
+    @Operation(
+            summary = "대출 신청서 삭제",
+            description = "로그인한 사용자가 본인의 작성중(01) 상태인 대출 신청서를 삭제합니다. " +
+                    "실제 데이터는 삭제하지 않고 is_deleted를 Y로 변경하는 Soft Delete 방식으로 처리합니다."
+    )
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteApplication(
+            @AuthenticationPrincipal Long memberId,
+            @PathVariable("id") Long applicationId
+    ){
+        loanService.deleteApplication(
+                memberId,
+                applicationId
+        );
+    }
+
 }

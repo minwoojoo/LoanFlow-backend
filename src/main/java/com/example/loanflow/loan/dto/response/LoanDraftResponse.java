@@ -14,7 +14,7 @@ public class LoanDraftResponse {
 
     private Long productId;
 
-    String applicationStatus;
+    private String statusName;
 
     private Long applicationAmount;
 

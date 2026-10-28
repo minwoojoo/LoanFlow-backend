@@ -26,7 +26,8 @@
             name,
             employment_type,
             annual_income,
-            birth_date
+            birth_date,
+            role
         FROM member
         WHERE member_id = #{memberId}
     </select>

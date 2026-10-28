@@ -12,7 +12,7 @@ public class LoanSubmitResponse {
 
     private Long applicationId;
 
-    private String applicationStatus;
+    private String statusName;
 
     private Long availableLimit;
 

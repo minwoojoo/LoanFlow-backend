@@ -10,29 +10,119 @@
 
             COUNT(
                 CASE
-                    WHEN application_status = '작성중' THEN 1
+                    WHEN status_code = '01' THEN 1
                 END
             ) AS draft_count,
 
             COUNT(
                 CASE
-                    WHEN application_status = '심사중' THEN 1
+                    WHEN status_code = '02' THEN 1
                 END
             ) AS reviewing_count,
 
             COUNT(
                 CASE
-                    WHEN application_status = '승인' THEN 1
+                    WHEN status_code = '03' THEN 1
                 END
             ) AS approved_count,
 
             COUNT(
                 CASE
-                    WHEN application_status = '거절' THEN 1
+                    WHEN status_code = '04' THEN 1
                 END
             ) AS rejected_count
         FROM loan_application
         WHERE is_deleted = 'N'
 
     </select>
+    
+    
+    
+    <select id="findDailyApplicationTrends" resultType="AdminDashboardTrendResponse">
+
+        SELECT
+            TO_CHAR(d.application_date, 'YYYY-MM-DD') AS application_date,
+            COUNT(la.application_id) AS application_count
+        FROM(
+            SELECT
+                TRUNC( CAST( SYSTIMESTAMP AT TIME ZONE 'Asia/Seoul' AS DATE ) ) - (7 - LEVEL) AS application_date
+            FROM dual
+            CONNECT BY LEVEL &lt;= 7
+        ) d
+
+        LEFT JOIN loan_application la
+            ON la.applied_at >= d.application_date
+            AND la.applied_at &lt; d.application_date + 1
+            AND la.is_deleted = 'N'
+
+        GROUP BY d.application_date
+
+        ORDER BY d.application_date ASC
+
+    </select>
+
+
+    <select id="analyzeFunnel" resultType="AdminDashboardFunnelResponse">
+
+        WITH date_range AS (
+            SELECT
+                CAST( TRUNC( CAST( SYSTIMESTAMP AT TIME ZONE 'Asia/Seoul' AS DATE) )
+                        - 6 AS TIMESTAMP ) AS start_at,
+                CAST( TRUNC( CAST( SYSTIMESTAMP AT TIME ZONE 'Asia/Seoul' AS DATE) )
+                        + 1 AS TIMESTAMP ) AS end_at
+            FROM dual
+        ),
+
+        -- 1단계: 신청서 생성
+        created AS (
+            SELECT
+                application_id,
+                MIN(occurred_at) AS created_at
+            FROM user_activity_log
+            CROSS JOIN date_range
+            WHERE event_type = 'APPLICATION_CREATE'
+                AND application_id IS NOT NULL
+                AND occurred_at >= start_at
+                AND occurred_at &lt; end_at
+            GROUP BY application_id
+        ),
+
+        -- 2단계: 신청서 생성 이후 한도 조회
+        limit_checked AS (
+            SELECT
+                l.application_id,
+                MIN(L.occurred_at) AS checked_at
+            FROM user_activity_log l
+            INNER JOIN created c
+                ON l.application_id = c.application_id
+            CROSS JOIN date_range d
+            WHERE l.event_type = 'LIMIT_CHECK'
+                AND l.occurred_at >= c.created_At
+                AND l.occurred_at &lt; d.end_at
+            GROUP BY l.application_id
+        ),
+
+        -- 3단계: 한도 조회 이후 최종 제출
+        submitted AS (
+            SELECT DISTINCT
+                s.application_id
+            FROM user_activity_log s
+            INNER JOIN limit_checked l
+                ON s.application_id = l.application_id
+            CROSS JOIN date_range d
+            WHERE s.event_type = 'APPLICATION_SUBMIT'
+                AND s.occurred_at >= l.checked_at
+                AND s.occurred_at &lt; d.end_at
+        )
+
+        SELECT
+            (SELECT COUNT(*) FROM created) AS application_create_count,
+
+            (SELECT COUNT(*) FROM limit_checked) AS limit_check_count,
+
+            (SELECT COUNT(*) FROM submitted) AS application_submit_count
+        FROM dual
+
+    </select>
+    
 </mapper>

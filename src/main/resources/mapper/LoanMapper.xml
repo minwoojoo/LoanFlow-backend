@@ -4,7 +4,7 @@
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.example.loanflow.loan.mapper.LoanMapper">
-    <insert id="insertApplication"
+    <insert id="createApplication"
             parameterType="LoanApplication"
             useGeneratedKeys="true"
             keyProperty="applicationId"
@@ -14,13 +14,13 @@
             member_id,
             product_id,
             request_id,
-            application_status
+            status_code
         )
         VALUES (
             #{memberId},
             #{productId},
             #{requestId},
-            #{applicationStatus}
+            #{statusCode}
         )
     </insert>
 
@@ -42,6 +42,7 @@
 
     </insert>
 
+
     <select id="findWritingApplication" resultType="LoanApplication">
 
         SELECT
@@ -56,15 +57,17 @@
             available_limit,
             estimated_interest_rate,
             loan_term,
-            application_status
+            status_code
         FROM loan_application
+
         WHERE member_id = #{memberId}
             AND product_id = #{productId}
-            AND application_status IN('작성중')
+            AND status_code = '01'
             AND is_deleted = 'N'
         ORDER BY created_at DESC, application_id DESC
         FETCH FIRST 1 ROW ONLY
     </select>
+
 
     <select id="findWritingByIdAndMember" resultType="LoanApplication">
         SELECT
@@ -78,11 +81,12 @@
             birth_date,
             available_limit,
             estimated_interest_rate,
-            application_status
+            status_code
         FROM loan_application
+
         WHERE application_id = #{applicationId}
             AND member_id = #{memberId}
-            AND application_status = '작성중'
+            AND status_code = '01'
             AND is_deleted = 'N'
     </select>
 
@@ -117,7 +121,7 @@
 
         WHERE application_id = #{applicationId}
         AND member_id = #{memberId}
-        AND application_status = '작성중'
+        AND status_code = '01'
         AND is_deleted = 'N'
 
     </update>
@@ -126,14 +130,14 @@
     <update id="submitApplication">
         UPDATE loan_application
         SET
-            application_status = '심사중',
+            status_code = '02',
             available_limit = #{availableLimit},
             estimated_interest_rate = #{estimatedInterestRate},
             applied_at = CAST(SYSTIMESTAMP AT TIME ZONE 'Asia/Seoul' AS TIMESTAMP),
             updated_at = CAST(SYSTIMESTAMP AT TIME ZONE 'Asia/Seoul' AS TIMESTAMP)
         WHERE application_id = #{applicationId}
             AND member_id = #{memberId}
-            AND application_status = '작성중'
+            AND status_code = '01'
             AND is_deleted = 'N'
     </update>
 
@@ -149,7 +153,7 @@
             annual_income,
             available_limit,
             estimated_interest_rate,
-            application_status,
+            status_code,
             loan_term,
             applied_at,
             created_at,
@@ -162,25 +166,26 @@
 
 
     <select id="findMyApplications"
-            resultType="LoanApplicationReadResponse">
+            resultType="LoanReadResponse">
 
         SELECT
             la.application_id,
             la.product_id,
             lp.product_name,
             la.application_amount,
-            la.application_status,
+            las.status_name,
             la.created_at,
             la.applied_at
         FROM loan_application la
         INNER JOIN loan_product lp
         ON la.product_id = lp.product_id
 
+        INNER JOIN loan_application_status las
+        ON la.status_code = las.status_code
+
         WHERE la.member_id = #{memberId}
             AND la.is_deleted = 'N'
-            AND la.application_status IN (
-                '작성중', '심사중', '승인', '거절'
-            )
+
         ORDER BY
             la.created_at DESC,
             la.application_id DESC
@@ -189,7 +194,7 @@
 
 
     <select id="findApplicationDetail"
-            resultType="LoanApplicationDetailResponse">
+            resultType="LoanDetailResponse">
 
         SELECT
             la.application_id,
@@ -202,7 +207,7 @@
             la.employment_type,
             la.annual_income,
             la.birth_date,
-            la.application_status,
+            las.status_name,
             la.created_at,
             la.applied_at,
             la.reviewed_at,
@@ -211,11 +216,27 @@
         INNER JOIN loan_product lp
         ON la.product_id = lp.product_id
 
+        INNER JOIN loan_application_status las
+        ON la.status_code = las.status_code
+
         WHERE la.application_id = #{applicationId}
             AND la.member_id = #{memberId}
             AND la.is_deleted = 'N'
 
     </select>
+
+
+    <update id="deleteApplication">
+        UPDATE loan_application
+        SET
+            is_deleted = 'Y',
+            deleted_at = CAST(SYSTIMESTAMP AT TIME ZONE 'Asia/Seoul' AS TIMESTAMP),
+            updated_at = CAST(SYSTIMESTAMP AT TIME ZONE 'Asia/Seoul' AS TIMESTAMP)
+        WHERE application_id = #{applicationId}
+            AND member_id = #{memberId}
+            AND is_deleted = 'N'
+            AND status_code = '01'
+    </update>
 
 
     <select id="findByApplicationAndRequestId" resultType="LoanApplication">
@@ -225,7 +246,7 @@
             member_id,
             product_id,
             request_id,
-            application_status,
+            status_code,
             review_result_id
         FROM loan_application
         WHERE application_id = #{applicationId}
@@ -237,18 +258,24 @@
 
         UPDATE loan_application
         SET
-            application_status = #{applicationStatus},
+            status_code = #{statusCode},
             review_result_id = #{reviewResultId},
             reviewed_at = CAST(SYSTIMESTAMP AT TIME ZONE 'Asia/Seoul' AS TIMESTAMP),
             updated_at = CAST(SYSTIMESTAMP AT TIME ZONE 'Asia/Seoul' AS TIMESTAMP)
         WHERE application_id = #{applicationId}
             AND request_id = #{requestId}
-            AND application_status = '심사중'
+            AND status_code = '02'
             AND review_result_id IS NULL
 
     </update>
 
-    <select id="findAllApplications" resultType="AdminLoanApplicationReadResponse">
+    <select id="findStatusNameByCode" resultType="string">
+        SELECT status_name
+        FROM loan_application_status
+        WHERE status_code = #{statusCode}
+    </select>
+
+    <select id="findAllApplications" resultType="AdminLoanReadResponse">
 
         SELECT
             la.application_id,
@@ -257,7 +284,7 @@
             la.product_id,
             lp.product_name,
             la.application_amount,
-            la.application_status,
+            las.status_name,
             la.created_at,
             la.applied_at,
             la.reviewed_at,
@@ -271,13 +298,16 @@
         INNER JOIN loan_product lp
             ON la.product_id = lp.product_id
 
+        INNER JOIN loan_application_status las
+            ON la.status_code = las.status_code
+
         ORDER BY la.created_at DESC,
         la.application_id DESC
 
     </select>
 
 
-    <select id="findAdminApplicationDetail" resultType="AdminLoanApplicationDetailResponse">
+    <select id="findAdminApplicationDetail" resultType="AdminLoanDetailResponse">
         SELECT
             la.application_id,
             la.member_id,
@@ -296,7 +326,7 @@
             la.annual_income,
             la.birth_date,
 
-            la.application_status,
+            las.status_name,
             la.request_id,
             la.review_result_id,
 
@@ -314,6 +344,9 @@
 
         INNER JOIN loan_product lp
             ON la.product_id = lp.product_id
+
+        INNER JOIN loan_application_status las
+            ON la.status_code = las.status_code
 
         WHERE la.application_id = #{applicationId}
     </select>

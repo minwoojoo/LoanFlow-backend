@@ -1,7 +1,7 @@
-
 package com.example.loanflow.review.service;
 
 import com.example.loanflow.loan.entity.LoanApplication;
+import com.example.loanflow.loan.entity.LoanApplicationStatus;
 import com.example.loanflow.loan.mapper.LoanMapper;
 import com.example.loanflow.review.dto.ReviewCallbackRequest;
 import com.example.loanflow.review.event.ReviewCallbackProcessedEvent;
@@ -37,12 +37,12 @@ public class ReviewCallbackService {
         }
 
         // 2. 심사 결과를 신청 상태로 변환
-        String applicationStatus;
+        String statusCode;
 
         if ("APPROVED".equals(request.getReviewResult())) {
-            applicationStatus = "승인";
+            statusCode = "03";
         } else if ("REJECTED".equals(request.getReviewResult())) {
-            applicationStatus = "거절";
+            statusCode = "04";
         } else {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
@@ -65,11 +65,11 @@ public class ReviewCallbackService {
         }
 
         // 4. 이미 심사 완료된 신청서인지 확인
-        if (!"심사중".equals(application.getApplicationStatus())) {
+        if (!"02".equals(application.getStatusCode())) {
 
             // 동일한 결과가 재전송된 경우 정상 처리
             if (request.getReviewResultId().equals(application.getReviewResultId())
-                    && applicationStatus.equals(application.getApplicationStatus())) {
+                    && statusCode.equals(application.getStatusCode())) {
 
                 log.info(
                         "중복 심사 콜백 - applicationId: {}",
@@ -92,8 +92,8 @@ public class ReviewCallbackService {
         int updatedRows = loanMapper.updateReviewResult(
                 request.getApplicationId(),
                 request.getRequestId(),
-                request.getReviewResultId(),
-                applicationStatus
+                statusCode,
+                request.getReviewResultId()
         );
 
         // 6. UPDATE 실패 또는 동시 콜백 확인
@@ -105,9 +105,11 @@ public class ReviewCallbackService {
                             request.getRequestId()
                     );
 
+            String currentStatusName = loanMapper.findStatusNameByCode(current.getStatusCode());
+
             if (current != null
                     && request.getReviewResultId().equals(current.getReviewResultId())
-                    && applicationStatus.equals(current.getApplicationStatus())) {
+                    && statusCode.equals(currentStatusName)) {
 
                 // 동시 요청으로 이미 처리된 동일 콜백
                 publishLogEvent(request, "DUPLICATE");
@@ -125,7 +127,7 @@ public class ReviewCallbackService {
                 "심사 결과 반영 완료 - applicationId: {}, reviewResultId: {}, status: {}",
                 request.getApplicationId(),
                 request.getReviewResultId(),
-                applicationStatus
+                statusCode
         );
 
         // 7. 심사 결과 처리 성공 이벤트 발행

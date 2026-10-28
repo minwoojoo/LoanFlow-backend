@@ -16,7 +16,7 @@ public class LoanReadResponse {
 
     private Long applicationAmount;
 
-    private String applicationStatus;
+    private String statusName;
 
     private LocalDateTime createdAt;
 

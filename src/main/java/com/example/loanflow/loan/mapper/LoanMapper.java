@@ -4,7 +4,9 @@ import com.example.loanflow.admin.dto.AdminLoanDetailResponse;
 import com.example.loanflow.admin.dto.AdminLoanReadResponse;
 import com.example.loanflow.loan.dto.request.LoanUpdateRequest;
 import com.example.loanflow.loan.dto.response.LoanDetailResponse;
+import com.example.loanflow.loan.dto.response.LoanDraftResponse;
 import com.example.loanflow.loan.dto.response.LoanReadResponse;
+import com.example.loanflow.loan.dto.response.LoanUpdateResponse;
 import com.example.loanflow.loan.entity.LoanApplication;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -16,7 +18,7 @@ import java.util.List;
 public interface LoanMapper {
 
     // 작성 중 대출 신청서 생성
-    int insertApplication(LoanApplication application);
+    int createApplication(LoanApplication application);
 
     // 약관 동의 내역 저장
     int insertConsent(
@@ -68,6 +70,13 @@ public interface LoanMapper {
             @Param("memberId") Long memberId
     );
 
+    // 작성 중인 대출 신청서 삭제
+    int deleteApplication(
+            @Param("memberId") Long memberId,
+            @Param("applicationId") Long applicationId
+    );
+
+
     // 심사 대상 신청서 조회
     LoanApplication findByApplicationAndRequestId(
             @Param("applicationId") Long applicationId,
@@ -78,9 +87,17 @@ public interface LoanMapper {
     int updateReviewResult(
             @Param("applicationId") Long applicationId,
             @Param("requestId") String requestId,
-            @Param("reviewResultId") String reviewResultId,
-            @Param("applicationStatus") String applicationStatus
+            @Param("statusCode") String statusCode,
+            @Param("reviewResultId") String reviewResultId
+
     );
+
+
+    // 상태 코드에 해당하는 상태명 조회
+    String findStatusNameByCode(
+            @Param("statusCode") String statusCode
+    );
+
 
     // 운영자 - 전체 대출 신청 목록 조회
     List<AdminLoanReadResponse> findAllApplications();

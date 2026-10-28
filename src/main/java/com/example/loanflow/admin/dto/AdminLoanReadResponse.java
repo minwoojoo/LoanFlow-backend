@@ -23,7 +23,7 @@ public class AdminLoanReadResponse {
 
     // 대출 신청 정보
     private Long applicationAmount;
-    private String applicationStatus;
+    private String statusName;
 
     // 신청 및 심사 일시
     private LocalDateTime createdAt;

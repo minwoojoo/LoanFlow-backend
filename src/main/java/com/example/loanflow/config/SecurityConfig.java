@@ -32,7 +32,9 @@ public class SecurityConfig {
 
             // api 접근 권한 설정
             .authorizeRequests()
-                .antMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                .antMatchers(HttpMethod.POST, "/api/auth/login",
+                        "/api/auth/refresh",
+                        "/api/auth/logout").permitAll()
 
                 .antMatchers(
                         HttpMethod.POST,

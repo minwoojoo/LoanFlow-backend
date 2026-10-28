@@ -2,6 +2,8 @@ package com.example.loanflow.loan.service;
 
 import com.example.loanflow.loan.dto.request.LoanLimitCheckRequest;
 import com.example.loanflow.loan.dto.response.LoanLimitCheckResponse;
+import com.example.loanflow.activity.service.UserActivityLogService;
+import com.example.loanflow.activity.enums.UserActivityEventType;
 import com.example.loanflow.loan.entity.LoanApplication;
 import com.example.loanflow.loan.entity.LoanEmploymentPolicy;
 import com.example.loanflow.loan.entity.LoanProduct;
@@ -26,11 +28,12 @@ public class LoanLimitService {
     private final LoanMapper loanMapper;
     private final LoanProductMapper loanProductMapper;
     private final LoanLimitMapper loanLimitMapper;
+    private final UserActivityLogService userActivityLogService;
 
     // =========================
     // 예상 대출 한도 및 금리 조회 API
     // =========================
-    @Transactional(readOnly = true)
+    @Transactional
     public LoanLimitCheckResponse checkLimit(
             Long memberId,
             LoanLimitCheckRequest request
@@ -51,12 +54,22 @@ public class LoanLimitService {
         }
 
         // 2. 공통 예상 한도 계산 메서드 호출
-        return calculateForApplication(
+        LoanLimitCheckResponse result = calculateForApplication(
                 application,
                 request.getEmploymentType(),
                 request.getAnnualIncome(),
                 request.getBirthDate()
         );
+
+        // 3. 한도 조회 활동 로그 기록
+        userActivityLogService.recordEvent(
+                memberId,
+                application.getApplicationId(),
+                UserActivityEventType.LIMIT_CHECK
+        );
+
+        // 4. 기존 결과 반환
+        return result;
     }
 
     // =========================

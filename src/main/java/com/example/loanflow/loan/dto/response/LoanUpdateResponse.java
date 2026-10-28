@@ -3,6 +3,7 @@ package com.example.loanflow.loan.dto.response;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Getter
@@ -11,7 +12,11 @@ public class LoanUpdateResponse {
 
     private Long applicationId;
 
-    private String applicationStatus;
+    private Long memberId;
+
+    private Long productId;
+
+    private String statusName;
 
     private Long applicationAmount;
 
@@ -22,4 +27,8 @@ public class LoanUpdateResponse {
     private Long annualIncome;
 
     private LocalDate birthDate;
+
+    private Long availableLimit;
+
+    private BigDecimal estimatedInterestRate;
 }

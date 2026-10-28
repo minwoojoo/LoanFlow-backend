@@ -1,4 +1,4 @@
-package com.example.loanflow.terms.dto;
+package com.example.loanflow.admin.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
