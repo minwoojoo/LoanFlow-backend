@@ -11,7 +11,7 @@ import com.example.loanflow.loan.mapper.LoanProductMapper;
 import com.example.loanflow.activity.service.UserActivityLogService;
 import com.example.loanflow.activity.enums.UserActivityEventType;
 
-import com.example.loanflow.review.event.ReviewRequestedEvent;
+import com.example.loanflow.review.dto.MockReviewRequest;
 import com.example.loanflow.terms.entity.Terms;
 import com.example.loanflow.terms.mapper.TermsMapper;
 
@@ -553,7 +553,7 @@ public class LoanService {
 
         // 심사 요청 이벤트 발행
         eventPublisher.publishEvent(
-                new ReviewRequestedEvent(
+                new MockReviewRequest(
                         submittedApplication.getApplicationId(),
                         submittedApplication.getRequestId()
                 )

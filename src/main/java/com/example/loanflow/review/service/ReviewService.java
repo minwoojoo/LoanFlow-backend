@@ -1,6 +1,6 @@
 package com.example.loanflow.review.service;
 
-import com.example.loanflow.review.client.MockReviewClient;
+import com.example.loanflow.integration.MockReviewClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

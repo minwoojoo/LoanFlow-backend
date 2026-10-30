@@ -1,12 +1,12 @@
 
-package com.example.loanflow.review.event;
+package com.example.loanflow.review.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class ReviewCallbackProcessedEvent {
+public class ReviewCallbackProcessedRequest {
 
     private final Long applicationId;
 

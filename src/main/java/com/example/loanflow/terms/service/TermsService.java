@@ -11,8 +11,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+
 
 
 @Service
@@ -21,15 +22,23 @@ public class TermsService {
     private final TermsMapper termsMapper;
 
     public List<TermsReadResponse> getAllActiveTerms(){
+
         List<Terms> termsList = termsMapper.findAllActive();
 
-        return termsList.stream()
-                .map(terms -> new TermsReadResponse(
-                        terms.getTermsId(),
-                        terms.getTermsName(),
-                        terms.getRequiredYn()
-                ))
-                .collect(Collectors.toList());
+        List<TermsReadResponse> responseList = new ArrayList<>();
+
+        for (Terms terms : termsList) {
+
+            TermsReadResponse response = new TermsReadResponse(
+                    terms.getTermsId(),
+                    terms.getTermsName(),
+                    terms.getRequiredYn()
+            );
+
+            responseList.add(response);
+        }
+
+        return responseList;
     }
 
     public TermsDetailReadResponse getDetailActiveTerms(Long termId){
@@ -54,16 +63,23 @@ public class TermsService {
     public List<AdminTermsListResponse> getAllTerms(){
         List<Terms> termsList = termsMapper.findAll();
 
-        return termsList.stream()
-                .map(terms -> new AdminTermsListResponse(
-                        terms.getTermsId(),
-                        terms.getTermsName(),
-                        terms.getTermsCode(),
-                        terms.getTermsVersion(),
-                        terms.getRequiredYn(),
-                        terms.getIsActive()
-                ))
-                .collect(Collectors.toList());
+        List<AdminTermsListResponse> responseList = new ArrayList<>();
+
+        for (Terms terms : termsList) {
+
+            AdminTermsListResponse response = new AdminTermsListResponse(
+                    terms.getTermsId(),
+                    terms.getTermsName(),
+                    terms.getTermsCode(),
+                    terms.getTermsVersion(),
+                    terms.getRequiredYn(),
+                    terms.getIsActive()
+            );
+
+            responseList.add(response);
+        }
+
+        return responseList;
     }
 
 

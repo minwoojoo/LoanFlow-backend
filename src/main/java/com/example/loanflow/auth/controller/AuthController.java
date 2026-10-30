@@ -123,7 +123,7 @@ public class AuthController {
                 .maxAge(0)
                 .build();
 
-        // 204 No Contetnt 반환
+        // 204 No Content 반환
         return ResponseEntity.noContent()
                 .header(
                         HttpHeaders.SET_COOKIE,

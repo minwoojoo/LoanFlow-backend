@@ -1,7 +1,8 @@
 package com.example.loanflow.review.listener;
 
 
-import com.example.loanflow.review.event.ReviewRequestedEvent;
+import com.example.loanflow.event.ReviewEventListener;
+import com.example.loanflow.review.dto.MockReviewRequest;
 import com.example.loanflow.review.service.LoanProcessingLogService;
 import com.example.loanflow.review.service.ReviewService;
 import org.junit.jupiter.api.DisplayName;
@@ -32,7 +33,7 @@ public class ReviewEventListenerTest {
     @DisplayName("심사 요청 성공 시 SUCCESS 로그를 저장한다")
     void handleReviewRequested_success(){
         // given
-        ReviewRequestedEvent event = new ReviewRequestedEvent(90L, "REQ-001");
+        MockReviewRequest event = new MockReviewRequest(90L, "REQ-001");
 
         // when
         reviewEventListener.handleReviewRequested(event);
@@ -62,7 +63,7 @@ public class ReviewEventListenerTest {
     void handleReviewRequested_failed() {
 
         // given
-        ReviewRequestedEvent event = new ReviewRequestedEvent(90L, "REQ-001");
+        MockReviewRequest event = new MockReviewRequest(90L, "REQ-001");
 
         doThrow(new RuntimeException("Mock 서버 연결 실패"))
                 .when(reviewService)
@@ -96,8 +97,8 @@ public class ReviewEventListenerTest {
     void handleReviewRequested_logFailed() {
 
         // given
-        ReviewRequestedEvent event =
-                new ReviewRequestedEvent(90L, "REQ-001");
+        MockReviewRequest event =
+                new MockReviewRequest(90L, "REQ-001");
 
         doThrow(new RuntimeException("로그 INSERT 실패"))
                 .when(loanProcessingLogService)

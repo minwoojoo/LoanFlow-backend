@@ -1,4 +1,4 @@
-package com.example.loanflow.review.client;
+package com.example.loanflow.integration;
 
 import com.example.loanflow.review.dto.MockReviewRequest;
 import lombok.RequiredArgsConstructor;

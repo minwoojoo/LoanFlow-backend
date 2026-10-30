@@ -34,6 +34,8 @@ public class AdminDashboardController {
     }
 
 
+
+
     @Operation(
             summary = "일별 대출 신청 추이 조회",
             description = "오늘을 포함한 최근 7일간 최종 제출된 대출 신청 건수를 날짜별로 조회합니다. 신청 건수가 없는 날짜도 0건으로 반환합니다."

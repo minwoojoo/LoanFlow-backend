@@ -1,6 +1,6 @@
-package com.example.loanflow.review.listener;
+package com.example.loanflow.event;
 
-import com.example.loanflow.review.event.ReviewRequestedEvent;
+import com.example.loanflow.review.dto.MockReviewRequest;
 import com.example.loanflow.review.service.LoanProcessingLogService;
 import com.example.loanflow.review.service.ReviewService;
 
@@ -20,7 +20,7 @@ public class ReviewEventListener {
     private final LoanProcessingLogService loanProcessingLogService;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleReviewRequested(ReviewRequestedEvent event) {
+    public void handleReviewRequested(MockReviewRequest event) {
 
         Long applicationId = event.getApplicationId();
         String requestId = event.getRequestId();

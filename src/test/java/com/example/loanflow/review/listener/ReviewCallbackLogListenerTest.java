@@ -1,6 +1,7 @@
 package com.example.loanflow.review.listener;
 
-import com.example.loanflow.review.event.ReviewCallbackProcessedEvent;
+import com.example.loanflow.event.ReviewCallbackLogListener;
+import com.example.loanflow.review.dto.ReviewCallbackProcessedRequest;
 import com.example.loanflow.review.service.LoanProcessingLogService;
 
 import org.junit.jupiter.api.DisplayName;
@@ -28,8 +29,8 @@ class ReviewCallbackLogListenerTest {
     void handleCallbackProcessed_success() {
 
         // given
-        ReviewCallbackProcessedEvent event =
-                new ReviewCallbackProcessedEvent(
+        ReviewCallbackProcessedRequest event =
+                new ReviewCallbackProcessedRequest(
                         90L,
                         "REQ-001",
                         "SUCCESS"
@@ -56,8 +57,8 @@ class ReviewCallbackLogListenerTest {
     void handleCallbackProcessed_duplicate() {
 
         // given
-        ReviewCallbackProcessedEvent event =
-                new ReviewCallbackProcessedEvent(
+        ReviewCallbackProcessedRequest event =
+                new ReviewCallbackProcessedRequest(
                         90L,
                         "REQ-001",
                         "DUPLICATE"
@@ -84,8 +85,8 @@ class ReviewCallbackLogListenerTest {
     void handleCallbackProcessed_logFailed() {
 
         // given
-        ReviewCallbackProcessedEvent event =
-                new ReviewCallbackProcessedEvent(
+        ReviewCallbackProcessedRequest event =
+                new ReviewCallbackProcessedRequest(
                         90L,
                         "REQ-001",
                         "SUCCESS"

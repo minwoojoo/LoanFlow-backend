@@ -24,5 +24,5 @@ public class UserActivityLog {
 
     private String eventType;
 
-    private LocalDateTime occuredAt;
+    private LocalDateTime occurredAt;
 }

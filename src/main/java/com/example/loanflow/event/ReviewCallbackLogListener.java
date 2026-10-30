@@ -1,6 +1,6 @@
-package com.example.loanflow.review.listener;
+package com.example.loanflow.event;
 
-import com.example.loanflow.review.event.ReviewCallbackProcessedEvent;
+import com.example.loanflow.review.dto.ReviewCallbackProcessedRequest;
 import com.example.loanflow.review.service.LoanProcessingLogService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +16,7 @@ public class ReviewCallbackLogListener {
     private final LoanProcessingLogService loanProcessingLogService;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleCallbackProcessed(ReviewCallbackProcessedEvent event){
+    public void handleCallbackProcessed(ReviewCallbackProcessedRequest event){
         try{
             loanProcessingLogService.saveLog(
                     event.getApplicationId(),

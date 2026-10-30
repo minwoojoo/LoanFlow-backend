@@ -1,4 +1,4 @@
-package com.example.loanflow.config;
+package com.example.loanflow._core.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -1,4 +1,4 @@
-package com.example.loanflow.config;
+package com.example.loanflow._core.config;
 
 import com.example.loanflow.auth.jwt.JwtTokenProvider;
 import com.example.loanflow.auth.jwt.JwtAuthenticationFilter;
